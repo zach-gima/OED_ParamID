@@ -28,12 +28,12 @@ LM_options.maxIter = 40;
 LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable) -- SHP used 100 in yr 1
 
 %%% Number of parameter groups
-num_groups = 4;
+num_groups = 2;
 
 %%%%%%%%%%%%%%%   ParamID Approach (Uncomment to select)   %%%%%%%%%%%%%%%
 
 % (1) Cumulative
-approach = {'G1_'; 'G2G1_'; 'G3G2G1_'; 'G4G3G2G1_'};
+approach = {'G1_'; 'G2G1_'};
 init_iter = 1; % start w/ G1 params
 
 % (2) All-at-once (Use for testing with true initial parameters)
@@ -191,7 +191,7 @@ try
         %% Load Group Specific Inputs
         filename_input = filename_input_vector{jj};
         filename_output = filename_output_vector{jj};
-        Inputs = load(filename_input); %Current, Voltage, Time        
+        Inputs = load(filename_input); %Current, Voltage, Time, T_amb     
         ci_inputs = load(ci_input_vector{jj}); %Inputs for each separate group -- used for C.I. calc.
         
         SensSelec = selection_vector(:,jj);

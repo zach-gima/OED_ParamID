@@ -110,7 +110,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
     %% Normalization
 
-    normalized_theta_bar = origin_to_norm(Selected_params,bounds,selection_vector);                     
+    normalized_theta_bar = origin_to_norm('param',Selected_params,bounds,selection_vector);                     
 
 %     Min_theta_bar = zeros(21,1);
 %     Max_theta_bar = ones(21,1);
@@ -119,7 +119,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     normalize_params_min = Min_theta_bar(sel_k);
     normalize_params_max = Max_theta_bar(sel_k);
 
-    normalized_sens_bar = originS_to_normS(Selected_params,bounds,selection_vector);
+    normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
    
     %% Levenberg_Marquardt
     
@@ -376,7 +376,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
                         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0, SensFlag);
                     end
                     y_sim = cell2mat(V_LM_CELL);
-                    normalized_sens_bar = originS_to_normS(park0,bounds,selection_vector);
+                    normalized_sens_bar = origin_to_norm('sens',park0,bounds,selection_vector);
                     S_LM = cell2mat(S_LM_CELL);
                     J_LM = bsxfun(@times,normalized_sens_bar', S_LM);
 

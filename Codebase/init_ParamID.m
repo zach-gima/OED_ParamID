@@ -1,10 +1,13 @@
 %% init_paramID function: used to initialize variables for Param_ID function
-% By Zach Gima 2018-3-19
+% Post collinearity clustering & sensitivity analysis, only identifying
+% 14 params:
+
+% By Zach Gima 2018-11-9
 
 %% Parameters [ZTG Change]
 
     %   UNCERTAIN PARAMETERS, theta
-    %   G1: 2; G2: 6, G3: 5, G4: 5, Eq: 3 (Year 1)
+    %   G1: 2; G2: 6, G3: 5, G4: 5, Eq: 3 (Year 2)
 
     %   (G2) 1  : D_s_n       => p.D_s_n0
     %   (G2) 2  : D_s_p       => p.D_s_p0
@@ -32,6 +35,8 @@
     %   () 24 : E.kn        => p.E.kn
     %   () 25 : E.kp        => p.E.kp
     
+    
+    
 function [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(approach,init_cond,input_folder,output_folder)
     
     %% ParamID variables
@@ -42,21 +47,33 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
 %     selection_vector(:,3) = [1;1;1;1;0;0;0;0;1;1;0;1;1;0;1;1;0;1;1;0;1]; %G3
 %     selection_vector(:,4) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1]; %G4
 
-    % Selection vector (Year 1)
-    selection_vector = zeros(25,4); %25 parameters
-    selection_vector(:,1) = [0;0;1;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0]; %G1
-    selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;1;0;0;1;0;1;0;0;0;0;0;0;0;0;0;0]; %G2
-    selection_vector(:,3) = [1;1;1;1;0;0;0;0;1;1;0;1;1;0;1;1;0;1;1;0;1;0;0;0;0]; %G3
-    selection_vector(:,4) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;0;0;0;0]; %G4
+%     % Selection vector (Year 1)
+%     selection_vector = zeros(25,4); %25 parameters
+%     selection_vector(:,1) = [0;0;1;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0]; %G1
+%     selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;1;0;0;1;0;1;0;0;0;0;0;0;0;0;0;0]; %G2
+%     selection_vector(:,3) = [1;1;1;1;0;0;0;0;1;1;0;1;1;0;1;1;0;1;1;0;1;0;0;0;0]; %G3
+%     selection_vector(:,4) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;0;0;0;0]; %G4
     
-    % File I/O
-    % Input filenames
-    filename_input_vector = cell(4,1);
+    % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
+    % Starting off just trying 2 groups of params
+    selection_vector = zeros(25,2);
+    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;1;0;0]; %G1
+    selection_vector(:,2) = [0;0;0;0;0;0;0;0;0;0;1;1;0;0;0;1;0;1;0;0;1;1;0;1;0]; %G2
+    
+%     % File I/O
+%     % Input filenames
+%     filename_input_vector = cell(4,1);
+%     filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+%     filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
+%     filename_input_vector{3} = strcat(input_folder,'V_sim_G3G2G1.mat');
+%     filename_input_vector{4} = strcat(input_folder,'V_sim_G4G3G2G1.mat');
+
+    % Input Filenames (Year 2, post-collinearity and noise threshold clustering/elimination) 
+    % Starting off just trying 2 groups of params
+    filename_input_vector = cell(2,1);
     filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
     filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
-    filename_input_vector{3} = strcat(input_folder,'V_sim_G3G2G1.mat');
-    filename_input_vector{4} = strcat(input_folder,'V_sim_G4G3G2G1.mat');
-
+    
     % Create output filenames
     filename_output_vector = cell(4,1);
 
@@ -72,18 +89,27 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     %% Confidence Interval variables
     % Create vector of indices for calculating confidence intervals
     % Will be calculating confidence intervals separately for each group
-    ci_select = cell(4,1);
+%     ci_select = cell(4,1);
+%     ci_select{1} = find(selection_vector(:,1));
+%     ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
+%     ci_select{3} = find(selection_vector(:,3) - selection_vector(:,2));
+%     ci_select{4} = find(selection_vector(:,4) - selection_vector(:,3));
+    
+    ci_select = cell(2,1);
     ci_select{1} = find(selection_vector(:,1));
     ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
-    ci_select{3} = find(selection_vector(:,3) - selection_vector(:,2));
-    ci_select{4} = find(selection_vector(:,4) - selection_vector(:,3));
     
     % CI Input filenames
     % Note: for calculating confidence intervals, will only use the oed-cvx
     % selected inputs for that respective group
-    ci_input_vector = cell(4,1);
+%     ci_input_vector = cell(4,1);
+%     ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+%     ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
+%     ci_input_vector{3} = strcat(input_folder,'V_sim_G3.mat');
+%     ci_input_vector{4} = strcat(input_folder,'V_sim_G4.mat');
+
+    ci_input_vector = cell(2,1);
     ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
     ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
-    ci_input_vector{3} = strcat(input_folder,'V_sim_G3.mat');
-    ci_input_vector{4} = strcat(input_folder,'V_sim_G4.mat');
+
 end

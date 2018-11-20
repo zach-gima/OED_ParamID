@@ -20,7 +20,7 @@ function [varargout] = origin_to_norm(mode,selected_param, bounds, Sel_k)
 
     emptyblk = NaN;
 
-    if mode == 'param'
+    if strcmp(mode,'param') %normalizing parameters
         origin2norm = [ (log10(origin_param(1)) - log10(bounds.min(1))) / (log10(bounds.max(1))-log10(bounds.min(1))); ... %Dsn (log)
                          (log10(origin_param(2)) - log10(bounds.min(2))) / (log10(bounds.max(2))-log10(bounds.min(2))); ... %Dsp (log)
                          (origin_param(3) - bounds.min(3)) / (bounds.max(3) - bounds.min(3)); ... %Rsn (Min/Max)
@@ -50,9 +50,9 @@ function [varargout] = origin_to_norm(mode,selected_param, bounds, Sel_k)
                          % check (1) min locations (2) max locations (3) numbers (4)
                          % normalization scheme correct
         norm_param = origin2norm(find(Sel_k));
-        varargout = norm_param;
+        varargout{1} = norm_param;
         
-    elseif mode == 'sens' %if normalizing sensitivity
+    elseif strcmp(mode,'sens') %if normalizing sensitivity
         origin2norm = [ (1/log10(exp(1)))*log10(bounds.max(1) / bounds.min(1))*origin_param(1); ...
                 (1/log10(exp(1)))*log10(bounds.max(2) / bounds.min(2))*origin_param(2); ...
                 bounds.max(3) - bounds.min(3);%(3)
@@ -81,7 +81,7 @@ function [varargout] = origin_to_norm(mode,selected_param, bounds, Sel_k)
                 ];
             
         norm_paramS = origin2norm(find(Sel_k));
-        varargout = norm_paramS;
+        varargout{1} = norm_paramS;
     else
         error('Specify either ''params'' or ''sens'' as the first argument to normalize parameters or sensitivity respectively')
     end

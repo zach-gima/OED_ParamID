@@ -37,7 +37,7 @@ approach = {'G1_'; 'G2G1_'};
 init_iter = 1; % start w/ G1 params
 
 % (2) All-at-once (Use for testing with true initial parameters)
-% approach = {'';'';'';'all_'};
+% approach = {'';'all_'};
 % init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
 
 
@@ -69,16 +69,15 @@ theta_0 = Nominal_param;
 
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
-% Folder with inputs and outputs
-io_folder = 'm2m_comp/'; 
-
 % Input subfolder
-input_folder = strcat(io_folder,'simulated_inputs/');
+input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 
 % Output subfolder
-output_folder = strcat(io_folder,'ID_results/');
-mkdir(output_folder,strrep(datestr(datetime_initial), ':', '_')); %create new subfolder with current date in output_folder
-output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
+date_txt = strrep(datestr(datetime_initial), ':', '_');
+output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+
+mkdir(output_folder); %create new subfolder with current date in output_folder
+% output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID approach and I.C.'s 
 [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(approach,init_cond,input_folder,output_folder);

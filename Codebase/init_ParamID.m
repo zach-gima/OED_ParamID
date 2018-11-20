@@ -56,9 +56,10 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     
     % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
     % Starting off just trying 2 groups of params
+    % [ZTG Updated 2018-11-20]
     selection_vector = zeros(25,2);
-    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;1;0;0]; %G1
-    selection_vector(:,2) = [0;0;0;0;0;0;0;0;0;0;1;1;0;0;0;1;0;1;0;0;1;1;0;1;0]; %G2
+    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;1;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
+    selection_vector(:,2) = [0;0;0;0;0;0;0;0;0;0;1;1;0;0;0;0;1;1;0;0;1;1;1;1;0]; %G2
     
 %     % File I/O
 %     % Input filenames
@@ -75,15 +76,12 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
     
     % Create output filenames
-    filename_output_vector = cell(4,1);
-
-    if strcmp(approach{4},'all_') == 1
-        filename_output_vector{4} = strcat(output_folder,approach{4},init_cond,'.mat');
+    filename_output_vector = cell(2,1);
+    if strcmp(approach{2},'all_') == 1
+        filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
     else % cumulative approach
         filename_output_vector{1} = strcat(output_folder,approach{1},init_cond,'.mat');
         filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
-        filename_output_vector{3} = strcat(output_folder,approach{3},init_cond,'.mat');
-        filename_output_vector{4} = strcat(output_folder,approach{4},init_cond,'.mat');
     end
 
     %% Confidence Interval variables

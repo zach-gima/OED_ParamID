@@ -17,9 +17,9 @@
 
 function [V,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag) % [ZTG change] removed Rc for no model-to-model comparison
 
-%     addpath('/Users/ztakeo/Documents/MATLAB/casadi')
-    addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows')
-    addpath('C:/Users/zgima/Documents/MATLAB/casadi_windows')
+    addpath('/Users/ztakeo/Documents/MATLAB/casadi')
+%     addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows')
+%     addpath('C:/Users/zgima/Documents/MATLAB/casadi_windows')
 
     import casadi.*
 

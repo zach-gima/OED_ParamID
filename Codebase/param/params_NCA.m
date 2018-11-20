@@ -90,7 +90,7 @@ p.sig_n = 100;    % Conductivity of solid in neg. electrode, [1/Ohms*m]
 p.sig_p = 100;%(True)    % Conductivity of solid in pos. electrode, [1/Ohms*m]
 
 % Miscellaneous
-p.t_plus = 0.36; % 0.38;      % Transference number; use 0.38 for Valoen-Reimers
+p.t_plus = 0.38; % 0.36;      % Transference number; use 0.38 for Valoen-Reimers
 p.Faraday = 96487;    % Faraday's constant, [Coulumbs/mol]
 p.Area = 0.0744;           % Electrode current collector area [m^2]
 

@@ -44,7 +44,7 @@ Nominal_param = [3.90e-14;    %1.D_s_n
                  0.5;        %11.eps_e_s
                  0.3;        %12.eps_e_p
                  1;          %13.Kappa
-                 0.363;       %14.t_plus
+                 0.38;       %14.t_plus 0.36 originally; 0.38 V-R Relationship
                  1;          %15.d_activity
                  7.5e-04;    %16.k_n0
                  2.3e-03;    %17.k_p0

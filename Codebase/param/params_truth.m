@@ -46,7 +46,7 @@ truth_param = [2.634e-14;    %1.D_s_n
                  0.468;        %11.eps_e_s
                  0.307;        %12.eps_e_p
                  1.398;          %13.Kappa
-                 0.36;       %14.t_plus
+                 0.38;       %14.t_plus %0.36 originally; 0.38 V-R Relationship
                  0.573;          %15.d_activity
                  7.5e-05;    %16.k_n0
                  2.3e-04;    %17.k_p0

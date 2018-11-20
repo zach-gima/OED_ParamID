@@ -96,67 +96,77 @@ fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
 %%% All true params except group X; perturb group X 10% away from
 %%% true values. 
 
-% % change this to indicate how many groups are being perturbed; e.g. for G2G1, num_groups = 2
-% num_groups = 3;  % for running V_sim_debug or perturbation analysis
-% 
-% % Perturb parameters of interest all at the beginning
-% % perturb_index = [3;4]; % G1 only
-% % perturb_index = [1;2;3;4;9;10;13;15]; % G1 & G2
-% perturb_index = [1;2;3;4;9;10;12;13;15;16;18;19;21]; % G1, G2, G3
-% 
-% perturb_factor = 1.3;
-% theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
-% 
-% % Display Analysis Info
-% fprintf('Perturbation Analysis Experiment \n');
-% fprintf('Groups 1->%i \n',num_groups); 
-% fprintf('Number of parameters: %i \n',length(perturb_index));
-% fprintf('Perturb Factor = %5.2f \n \n', perturb_factor);
-% 
-% % Overwrite the nominal values in the param struct w/ true values
-% p.D_s_n0 = theta_0(1); %[G2]
-% p.D_s_p0 = theta_0(2); %[G2]
-% p.R_s_n = theta_0(3); %[G1]
-% p.R_s_p = theta_0(4); %[G1]
+% change this to indicate how many groups are being perturbed; e.g. for G2G1, num_groups = 2
+num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
+
+% Perturb parameters of interest all at the beginning
+perturb_index = [1;2;3;4;9;10;15]; % G1
+% perturb_index = [1;2;3;4;9;10;11;12;15;17;18;21;22;23;24]; %G1 & G2
+
+perturb_factor = 1.1;
+theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
+
+% Display Analysis Info
+fprintf('Perturbation Analysis Experiment \n');
+fprintf('Groups 1->%i \n',num_perturbedgroups); 
+fprintf('Number of parameters: %i \n',length(perturb_index));
+fprintf('Perturb Factor = %5.2f \n \n', perturb_factor);
+
+% Overwrite the nominal values in the param struct w/ true values
+p.D_s_n0 = theta_0(1); %[G2]
+p.D_s_p0 = theta_0(2); %[G2]
+p.R_s_n = theta_0(3); %[G1]
+p.R_s_p = theta_0(4); %[G1]
 % p.epsilon_s_n = theta_0(5); %  Equil. Struct
 % p.epsilon_s_p = theta_0(6); %  Equil. Struct
-% p.sig_n = theta_0(7);
-% p.sig_p = theta_0(8);
-% p.ElecFactorD = theta_0(9); %[G2]
-% p.epsilon_e_n = theta_0(10); %[G2]
-% p.epsilon_e_s = theta_0(11);
-% p.epsilon_e_p = theta_0(12);
-% p.ElecFactorK = theta_0(13); %[G2]
-% p.t_plus = theta_0(14);
-% p.ElecFactorDA = theta_0(15); %[G2]
-% p.k_n0 = theta_0(16);
-% p.k_p0 = theta_0(17);
-% p.R_f_n = theta_0(18);
-% p.R_f_p = theta_0(19);
+p.sig_n = theta_0(7);
+p.sig_p = theta_0(8);
+p.ElecFactorD = theta_0(9); %[G2]
+p.epsilon_e_n = theta_0(10); %[G2]
+p.epsilon_e_s = theta_0(11);
+p.epsilon_e_p = theta_0(12);
+p.ElecFactorK = theta_0(13); %[G2]
+p.t_plus = theta_0(14);
+p.ElecFactorDA = theta_0(15); %[G2]
+p.k_n0 = theta_0(16);
+p.k_p0 = theta_0(17);
+p.R_f_n = theta_0(18);
+p.R_f_p = theta_0(19);
 % p.n_Li_s = theta_0(20); %  Equil. Struct
-% p.c_e0 = theta_0(21);
-% p.E.Dsn = theta_0(22);
-% p.E.Dsp = theta_0(23);
-% p.E.kn = theta_0(24);
-% p.E.kp = theta_0(25);
-% 
-% % Check whether the perturbed value exceeds a pre-set bound (params_bounds)
-% % If so, then replace the bound with the initial value
-% for ii = 1:length(theta_0)  
-%     
-%     % Initial Value > Upper Bound
-%     if theta_0(ii) > bounds.max(ii)
-%         bounds.max(ii) = theta_0(ii);
-%         fprintf('Parameter %i perturbed past upper bound \n', ii);
-%     end
-%     
-%     % Initial Value < Lower Bound
-%     if theta_0(ii) < bounds.min(ii)
-%         bounds.min(ii) = theta_0(ii);
-%         fprintf('Parameter %i perturbed past lower bound \n', ii);
-%     end
-%     
-% end
+p.c_e0 = theta_0(21);
+p.E.Dsn = theta_0(22);
+p.E.Dsp = theta_0(23);
+p.E.kn = theta_0(24);
+p.E.kp = theta_0(25);
+
+%%% Update Dependencies
+% Specific interfacial surface area
+p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
+p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
+
+% make element to caclulate phi_{s} by Saehong Park 
+p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
+p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
+
+
+
+% Check whether the perturbed value exceeds a pre-set bound (params_bounds)
+% If so, then replace the bound with the initial value
+for ii = 1:length(theta_0)  
+    
+    % Initial Value > Upper Bound
+    if theta_0(ii) > bounds.max(ii)
+        bounds.max(ii) = theta_0(ii);
+        fprintf('Parameter %i perturbed past upper bound \n', ii);
+    end
+    
+    % Initial Value < Lower Bound
+    if theta_0(ii) < bounds.min(ii)
+        bounds.min(ii) = theta_0(ii);
+        fprintf('Parameter %i perturbed past lower bound \n', ii);
+    end
+    
+end
 
 %% Call ParamID function
 

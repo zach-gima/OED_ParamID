@@ -1,8 +1,15 @@
 %% Max Input Analysis
 %%% By: Zach Gima 2018-11-1
-%%% Code for analyzing inputs selected for sensitivity analysis
+%%% Function for analyzing inputs selected for sensitivity analysis
+% Specifically, this function generates meta statistics/plots about the #
+% of inputs selected for each possible ambient temperature, profile length
+% etc.
 
-function input_selection_analysis(r,senspath)
+% r should be a struct that is loaded by the dir() command
+% senspath should point to the location of the .mat files corresponding to
+% the subset of the input library that you intend to use for identifying
+% your parameters
+function input_selection_analysis(r,senspath,folder_path)
     sens_inputs = struct([]);
     num_inputs = length(r);
     sens_index = cell(num_inputs,1);
@@ -20,6 +27,9 @@ function input_selection_analysis(r,senspath)
         sens_inputs(i).V = V;
         sens_inputs(i).maxT1 = max(sens_inputs(i).T1);
         sens_inputs(i).maxT2 = max(sens_inputs(i).T2);
+
+        % Print Quick Useful Info
+        fprintf('Exp. %s has Tamb = %i, V_0 = %0.3f \n',sens_index{i}(1:end-4), T_a(1), V_0);
 
     end    
 
@@ -66,12 +76,8 @@ function input_selection_analysis(r,senspath)
         end
     end
 
-
-
     %% Plot Everything
     fs = 25;
-
-    folder_path  = 'Plots/';
 
     %%% Plot Selected Input Stats
     % Plot SOC_0 stats

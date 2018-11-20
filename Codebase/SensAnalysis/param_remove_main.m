@@ -4,6 +4,15 @@
 % among the parameters and sensitivity magnitude of each parameter across
 % all inputs in the library. Finally, the script determines the "optimal" inputs to use for identifying the reduced set of parameters 
 % -- optimal in the sens of maximizing the sensitivity magnitude for each respective parameter 
+
+% Outputs of the script:
+% (1) Cardinality plot, indicating # exp in input library for which a
+% parameter is identifiable according to our collinearity and sens. mag.
+% threshold
+% (2) Parameter Sensitivity Magnitude ranking plot
+% (3) results structure: final parameters to be identified (unsorted and
+% sorted from high->low sens. magnitude) and corresponding max sens. input
+% for that parameter
 clearvars
 close all
 clc
@@ -31,8 +40,8 @@ run /Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/param/params_bounds.m
 
 % Directory location for sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All/';
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax60/';
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax45/';
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax60/';
 
 % Load sens files
 sens_files = dir(senspath);
@@ -49,8 +58,8 @@ num_exp = length(sens_files);
 
 % [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds);
 
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_T_max45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_T_max60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 
 if num_exp ~= length(sens)
     error('Check that senspath and exp_info.mat file are consistent i.e. have same # of experiments')
@@ -153,5 +162,5 @@ results.params_remaining = params_remaining;
 results.max_exp_num = max_exp_num;
 results.params_sorted = params_sorted;
 results.max_exp_num_sorted = max_exp_sorted;
-% save('max_sens_experiments.mat','results');
-% save('max_sens_experiments_T_max60.mat','results');
+% save('max_sens_experiments_Tmax45.mat','results');
+% save('max_sens_experiments_Tmax60.mat','results');

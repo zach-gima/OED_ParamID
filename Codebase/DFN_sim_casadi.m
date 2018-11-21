@@ -15,7 +15,7 @@
 
 % T_amb expected in Celsius
 
-function [V,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag) % [ZTG change] removed Rc for no model-to-model comparison
+function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag) % [ZTG change] removed Rc for no model-to-model comparison
 
     addpath('/Users/ztakeo/Documents/MATLAB/casadi')
 %     addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows')
@@ -767,8 +767,9 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp, Vol
         SOC(k+1) = (mean(c_avg_n(:,k+1)) - cn_low) / (cn_high - cn_low);
 
         if v_sim(:,k+1) <= p.volt_min
-            fprintf('Min voltage is reached at %d iteration',k);
-            break;
+            error('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
+%             fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
+%             break;
         end
 
         if SensFlag == 1 % Calculate sensitivity flag == true

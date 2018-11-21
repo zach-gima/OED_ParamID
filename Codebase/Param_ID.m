@@ -40,6 +40,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     Time_exp = Inputs.Time_exp;
     Voltage_exp = Inputs.V_LM_CELL;
     T_amb = Inputs.T_amb_sim; % note comes in celcius
+    exp_num = Inputs.exp_num;
     
     num_inputs = length(Voltage_exp);
     y_dat = cell2mat(Voltage_exp); % Truth/experimental data
@@ -96,7 +97,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     % Simulate DFN and Calculate Sensitivties for initial parameter values
     SensFlag = 1;
     parfor idx = 1:num_inputs
-        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
+        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
     end
 
     V_LM = cell2mat(V_LM_CELL);
@@ -231,7 +232,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
             SensFlag = 0;
             parfor idx = 1:num_inputs
-                [Y_SIM_CELL{idx},~] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0,SensFlag);
+                [Y_SIM_CELL{idx},~] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0,SensFlag);
             end
 
             y_sim = cell2mat(Y_SIM_CELL);
@@ -373,7 +374,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
                     SensFlag = 1;
                     parfor idx = 1:num_inputs
-                        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0, SensFlag);
+                        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0, SensFlag);
                     end
                     y_sim = cell2mat(V_LM_CELL);
                     normalized_sens_bar = origin_to_norm('sens',park0,bounds,selection_vector);
@@ -452,6 +453,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     fprintf('Final Parameter Values: %1.6f \n',park0)    
     
     %% Concatenate Outputs & Save Results
+    paramID_out.exp_num = exp_num;
     paramID_out.Time_exp = Time_exp;
     paramID_out.Current_exp = Current_exp;
     paramID_out.Voltage_exp = Voltage_exp;

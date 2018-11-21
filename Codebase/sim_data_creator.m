@@ -9,15 +9,15 @@ clc
 
 % Directory location for sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax45/';
-% inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax45/';
-% inputrawpath = 'InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax45.mat');
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax45/';
+inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax45/';
+inputrawpath = 'InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax45.mat');
 
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax60/';
-inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
-inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat');
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax60/';
+% inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
+% inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat');
 
 mkdir(inputrawpath);
 
@@ -64,6 +64,7 @@ exp_idx = 1; % index variable used to iterate through all max_exp_num entries
 for mm = 1:Num_groups
     
     % Initialize variables
+   
     Current_exp_cell = {};
     Time_exp_cell = {};
     V_LM_CELL = {};
@@ -74,7 +75,7 @@ for mm = 1:Num_groups
     T1_sim_cell = {};
     T2_sim_cell = {};
     T_amb_sim_cell = {};
-    
+    exp_num_cell = {};
     for zz = 1:Group_size(mm) 
         % Check whether input has already been formatted; sometimes same input
         % is selected by multiple parameters; we only want to run once
@@ -107,6 +108,9 @@ for mm = 1:Num_groups
         T2_sim_cell = vertcat(T2_sim_cell,alg_states.T2_sim');
         T_amb_sim_cell = vertcat(T_amb_sim_cell,T_amb(1));
         
+        % exp number
+        exp_num_cell = vertcat(exp_num_cell,num2str(max_exp_num(exp_idx)));
+        
         % Update exp_idx, used to keep track of which max_exp_num we're on
         exp_idx = exp_idx + 1;
         
@@ -126,8 +130,9 @@ for mm = 1:Num_groups
     T1_sim = T1_sim_cell;
     T2_sim = T2_sim_cell;
     T_amb_sim = T_amb_sim_cell;
-
-    save(filename_input_vector{mm},'Time_exp','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim');
+    exp_num = exp_num_cell;
+    
+    save(filename_input_vector{mm},'Time_exp','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num');
 end
 
 %% Uncomment to create .mat files where groups are combined G2G1, G3G2G1...
@@ -144,6 +149,7 @@ etap_sim_1 = S1.etap_sim;
 T1_sim_1 = S1.T1_sim;
 T2_sim_1 = S1.T2_sim;
 T_amb_sim_1 = S1.T_amb_sim;
+exp_num_1 = S1.exp_num;
 
 S2 = load(filename_input_vector{2});
 Current_exp_2 = S2.Current_exp;
@@ -153,9 +159,11 @@ cssn_sim_2 = S2.cssn_sim;
 cssp_sim_2 = S2.cssp_sim;
 etan_sim_2 = S2.etan_sim;
 etap_sim_2 = S2.etap_sim;
-T1_sim_2 = S1.T1_sim;
-T2_sim_2 = S1.T2_sim;
-T_amb_sim_2 = S1.T_amb_sim;
+T1_sim_2 = S2.T1_sim;
+T2_sim_2 = S2.T2_sim;
+T_amb_sim_2 = S2.T_amb_sim;
+exp_num_2 = S2.exp_num;
+
 
 % G2G1
 Current_exp =  vertcat(Current_exp_2,Current_exp_1);
@@ -168,5 +176,5 @@ etap_sim = vertcat(etap_sim_2,etap_sim_1);
 T1_sim = vertcat(T1_sim_2,T1_sim_1);
 T2_sim = vertcat(T2_sim_2,T2_sim_1);
 T_amb_sim = vertcat(T_amb_sim_2,T_amb_sim_1);
-
-save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim')
+exp_num = vertcat(exp_num_2,exp_num_1);
+save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num')

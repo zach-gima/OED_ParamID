@@ -74,7 +74,8 @@ input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+output_folder = strcat('C:/Users/zgima/Documents/MATLAB/OED_ParamID-cluster/ID_results/',date_txt,'/'); %HPC-2 Path
 
 mkdir(output_folder); %create new subfolder with current date in output_folder
 % output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
@@ -103,7 +104,7 @@ num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
 perturb_index = [1;2;3;4;9;10;15]; % G1
 % perturb_index = [1;2;3;4;9;10;11;12;15;17;18;21;22;23;24]; %G1 & G2
 
-perturb_factor = 1.1;
+perturb_factor = 0.9;
 theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
 
 % Display Analysis Info
@@ -148,8 +149,6 @@ p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
 p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
 p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
 
-
-
 % Check whether the perturbed value exceeds a pre-set bound (params_bounds)
 % If so, then replace the bound with the initial value
 for ii = 1:length(theta_0)  
@@ -177,7 +176,7 @@ end
 
 %try/catch structure used to send email alert if program exits w/ error
 % For saving errors:
-error_filename = strcat(output_folder,'error.txt');
+error_filename = strcat(output_folder,'sim_log.txt');
 diary(error_filename)
 
 %initialize vectors for storing metrics and other data

@@ -214,7 +214,7 @@ try
 
         % Save time it took to identify each parameter group
         datetime_paramID{jj} = datetime('now','TimeZone','local')
-        t_paramID = vertcat(t_paramID,toc+t_paramID(jj-1)); %measure program execution time
+        t_paramID = vertcat(t_paramID,toc+t_paramID(end)); %measure program execution time
         iter_history = vertcat(iter_history,LM_Iter);
        
         % Replace parameter values with newly ID'ed values

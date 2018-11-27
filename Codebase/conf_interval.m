@@ -6,7 +6,8 @@ function [J_LM,ci95,sigma_y,covar_p,alg_states] = conf_interval(p, Inputs, SensS
     Time_exp = Inputs.Time_exp;
     Voltage_exp = Inputs.V_LM_CELL;
     T_amb = Inputs.T_amb_sim;
-    
+    exp_num = Inputs.exp_num;
+
     num_inputs = length(Voltage_exp);
     y_dat = cell2mat(Voltage_exp); % Truth/experimental data
     total_NT  = size(y_dat,1);
@@ -21,7 +22,7 @@ function [J_LM,ci95,sigma_y,covar_p,alg_states] = conf_interval(p, Inputs, SensS
     % calculated Jacobian may not correspond to the identified parameter set.
     SensFlag = 1;
     parfor idx = 1:num_inputs
-        [V_LM_CELL{idx}, alg_states{idx}, S_LM_CELL{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},T_amb{idx}, SensSelec, park0, SensFlag);
+        [V_LM_CELL{idx}, alg_states{idx}, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},T_amb{idx}, SensSelec, park0, SensFlag);
     end
 
     y_sim = cell2mat(V_LM_CELL);

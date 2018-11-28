@@ -15,6 +15,8 @@ clc
 senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
 outputfolderpath  = 'Plots/InputAnalysis/Tmax60/';
 
+rmdir(outputfolderpath,'s');
+mkdir(outputfolderpath);
 
 
 %% Load Directory of Sensitivity Files into Struct

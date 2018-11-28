@@ -40,12 +40,12 @@ run /Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/param/params_bounds.m
 
 % Directory location for sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax45/';
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax45/';
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
 
 % Set output filename
-output_filename = 'max_sens_experiments_Tmax45.mat';
-% output_filename = 'max_sens_experiments_Tmax60.mat';
+% output_filename = 'max_sens_experiments_Tmax45.mat';
+output_filename = 'max_sens_experiments_Tmax60.mat';
 
 % Load sens files
 sens_files = dir(senspath);
@@ -60,9 +60,9 @@ num_exp = length(sens_files);
 %%% sensitivities. find_admissable_experiment_sets then saves the results
 %%% into exp_info.mat, which can be loaded from thereon.
 
-% [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds);
+[STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds);
 
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 
 if num_exp ~= length(sens)
@@ -170,4 +170,4 @@ results.params_remaining = params_remaining;
 results.max_exp_num = max_exp_num;
 results.params_sorted = params_sorted;
 results.max_exp_num_sorted = max_exp_sorted;
-% save(output_filename,'results');
+save(output_filename,'results');

@@ -19,6 +19,7 @@ inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
 inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
 load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat');
 
+rmdir(inputrawpath,'s'); % delete folder first (assuming it exists); this prevents the folder from keeping older .mat files
 mkdir(inputrawpath);
 
 % Set Number of Groups and params in each group
@@ -111,13 +112,17 @@ for mm = 1:Num_groups
         % exp number
         exp_num_cell = vertcat(exp_num_cell,num2str(max_exp_num(exp_idx)));
         
-        % Update exp_idx, used to keep track of which max_exp_num we're on
-        exp_idx = exp_idx + 1;
-        
         % Debugging
         if length(Time_exp') ~= length(alg_states.T1_sim')
             fprintf('Experiment %s has mismatched data sizes \n',exp_str);
         end
+        
+        % Min V checking (issue that comes up during model-to-model comp)
+        min_V = min(V_LM_CELL{end});
+        fprintf('Exp. %i has min V = %0.3f \n',max_exp_num(exp_idx),min_V);
+        
+        % Update exp_idx, used to keep track of which max_exp_num we're on
+        exp_idx = exp_idx + 1;
     end
     
     % rename the variables and remove _cell (just so it plays nicely w/ Param_ID.m and DFN_sim_casadi.m) 

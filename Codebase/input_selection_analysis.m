@@ -28,8 +28,19 @@ function input_selection_analysis(r,senspath,folder_path)
         sens_inputs(i).maxT1 = max(sens_inputs(i).T1);
         sens_inputs(i).maxT2 = max(sens_inputs(i).T2);
 
+        if V_0 == 3.9481
+            SOC_0 = 0.8;
+        elseif V_0 == 3.7689
+            SOC_0 = 0.6;
+        elseif V_0 == 3.5982
+            SOC_0 = 0.4;
+        elseif V_0 == 3.4562
+            SOC_0 = 0.2;
+        else
+            SOC_0 = 0;
+        end
         % Print Quick Useful Info
-        fprintf('Exp. %s has Tamb = %i, V_0 = %0.3f \n',sens_index{i}(1:end-4), T_a(1), V_0);
+        fprintf('Exp. %s has Tamb = %i, V_0 = %0.3f, SOC_0 = %0.2f \n',sens_index{i}(1:end-4), T_a(1), V_0,SOC_0);
 
     end    
 

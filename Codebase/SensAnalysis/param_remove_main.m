@@ -40,8 +40,12 @@ run /Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/param/params_bounds.m
 
 % Directory location for sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax45/';
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax60/';
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax45/';
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
+
+% Set output filename
+output_filename = 'max_sens_experiments_Tmax45.mat';
+% output_filename = 'max_sens_experiments_Tmax60.mat';
 
 % Load sens files
 sens_files = dir(senspath);
@@ -58,8 +62,8 @@ num_exp = length(sens_files);
 
 % [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds);
 
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 
 if num_exp ~= length(sens)
     error('Check that senspath and exp_info.mat file are consistent i.e. have same # of experiments')
@@ -141,26 +145,29 @@ A_sort = A_new(param_sens_ranking,:);
 group1_size = 7;
 group2_size = 7;
 
+fprintf('\n')
+disp('Check that all parameters in Group 1 are identifiable for each input in that group.')
 for kk = 1:group1_size
     for jj = 1:group1_size
         if (sum(A_sort(kk,:) == max_exp_sorted(jj)) == 0)
-            fprintf('%s not sensitive to %i',params_sorted{kk})
+            fprintf('%s not sensitive to %i. Remove experiment. \n',params_sorted{kk}, max_exp_sorted(jj))
         end
     end
 end
-
+disp('Complete')
+fprintf('\n')
+disp('Check that all parameters in Group 2 are identifiable for each input in that group.')
 for mm = 1:group2_size
     for pp = 1:group2_size
         if (sum(A_sort(mm,:) == max_exp_sorted(pp)) == 0)
-            fprintf('%s not sensitive to %i',params_sorted{mm})
+            fprintf('%s not sensitive to %i. Remove experiment. \n',params_sorted{mm}, max_exp_sorted(jj))
         end
     end
 end
-
+disp('Complete')
 %% Compile results
 results.params_remaining = params_remaining;
 results.max_exp_num = max_exp_num;
 results.params_sorted = params_sorted;
 results.max_exp_num_sorted = max_exp_sorted;
-% save('max_sens_experiments_Tmax45.mat','results');
-% save('max_sens_experiments_Tmax60.mat','results');
+% save(output_filename,'results');

@@ -9,21 +9,21 @@ clc
 
 % Directory location for sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax45/';
-inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax45/';
-inputrawpath = 'InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax45.mat');
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax45/';
+% inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax45/';
+% inputrawpath = 'InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax45.mat');
 
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/All_Tmax60/';
-% inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
-% inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat');
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
+inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
+inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat');
 
 mkdir(inputrawpath);
 
 % Set Number of Groups and params in each group
 Num_groups = 2; % desired number of param groups
-Group_size = [7,8]; % for each group, specify # params to identify
+Group_size = [6,7]; % for each group, specify # params to identify
 
 % Create names for formatted inputs
 filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');

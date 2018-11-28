@@ -4,16 +4,18 @@
 clear all
 close all
 clc
-%% Set Path to Pre-computed MAX Sensitivity Files
+%% Set Path to Pre-computed MAX Sensitivity Files and set output folder path
 % Directory location for max sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
+
 % senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-
-
-% Set Output folder path
 % outputfolderpath  = 'Plots/InputAnalysis/Tmax45/';
+
+
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
 outputfolderpath  = 'Plots/InputAnalysis/Tmax60/';
+
+
 
 %% Load Directory of Sensitivity Files into Struct
 

@@ -35,8 +35,6 @@
     %   () 24 : E.kn        => p.E.kn
     %   () 25 : E.kp        => p.E.kp
     
-    
-    
 function [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(approach,init_cond,input_folder,output_folder)
     
     %% ParamID variables
@@ -56,10 +54,10 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     
     % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
     % Starting off just trying 2 groups of params
-    % [ZTG Updated 2018-11-20]
+    % [ZTG Updated 2018-11-27]
     selection_vector = zeros(25,2);
-    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;1;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
-    selection_vector(:,2) = [0;0;0;0;0;0;0;0;0;0;1;1;0;0;0;0;1;1;0;0;1;1;1;1;0]; %G2
+    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
+    selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
     
 %     % File I/O
 %     % Input filenames

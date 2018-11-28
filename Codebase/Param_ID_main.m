@@ -23,9 +23,9 @@ param_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called StepTol)
 chi_sq_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called FuncTol)
 
 LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh];
-LM_options.maxIter = 40;
+LM_options.maxIter = 30;
 
-LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable) -- SHP used 100 in yr 1
+LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
 
 %%% Number of parameter groups
 num_groups = 2;
@@ -101,10 +101,10 @@ fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
 num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
 
 % Perturb parameters of interest all at the beginning
-perturb_index = [1;2;3;4;9;10;15]; % G1
-% perturb_index = [1;2;3;4;9;10;11;12;15;17;18;21;22;23;24]; %G1 & G2
+% perturb_index = find(selection_vector(:,1)); % G1
+perturb_index = find(selection_vector(:,2)); %G1 & G2
 
-perturb_factor = 0.9;
+perturb_factor = 1.5;
 theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
 
 % Display Analysis Info

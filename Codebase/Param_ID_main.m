@@ -251,7 +251,7 @@ try
 
         % Calculate local sensitivity and final RMSE
         tic
-        [J_LM,ci95,sigma_y,covar_p] ...
+        [J_LM,ci95,sigma_y,covar_p,alg_states] ...
             = conf_interval(p, ci_inputs, SensSelec, park0);
 
         t_ci = toc; %store time for computing confidence interval

@@ -35,6 +35,10 @@ norm2origin = [10^(norm_param(1)*log10(bounds.max(1)/bounds.min(1))+log10(bounds
                norm_param(19)*(bounds.max(19) - bounds.min(19)) + bounds.min(19); %Rfp (Min/Max)
                NaN;
                norm_param(21)*(bounds.max(21) - bounds.min(21)) + bounds.min(21) %c_e (Min/Max)
+               norm_param(22)*(bounds.max(22) - bounds.min(22)) + bounds.min(22) %E.Dsn (Min/Max) 
+               norm_param(23)*(bounds.max(23) - bounds.min(23)) + bounds.min(23) %E.Dsp (Min/Max) 
+               norm_param(24)*(bounds.max(24) - bounds.min(24)) + bounds.min(24) %E.kn (Min/Max) 
+               norm_param(25)*(bounds.max(25) - bounds.min(25)) + bounds.min(25) %E.kp (Min/Max) 
                ];
 
            

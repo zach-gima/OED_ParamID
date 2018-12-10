@@ -96,6 +96,7 @@ fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
 %%% Comment out this section to not run
 %%% All true params except group X; perturb group X 10% away from
 %%% true values. 
+truth_param = Nominal_param;
 
 % change this to indicate how many groups are being perturbed; e.g. for G2G1, num_groups = 2
 num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
@@ -233,7 +234,7 @@ try
             
         % Save data & send email
         save(filename_output,'paramID_out','rmse_final','datetime_initial','datetime_paramID',...
-        'truth_param','theta_0_true','LM_options','sel_k','bounds','ci95_full','t_paramID','output_folder');
+        'truth_param','theta_0_true','LM_options','sel_k','selection_vector','bounds','ci95_full','t_paramID','output_folder');
 
         % consider deleting data from previous L-M iterations
         % LM_filename_output = strcat(filename_output(1:end-4),'_iter_');
@@ -287,13 +288,13 @@ try
         %fprintf('##### Final RMSE : %f ##### \n', rmse_final(jj));
         fprintf('The parameter estimate is %1.5e \n',park0)
         fprintf('plus/minus 95 %% confidence interval is %1.5e \n',ci95_full(sel_k))
-
+    
         % Export Results
         save(filename_output,'paramID_out','rmse_final','ci95_full','sigma_y',...
         'covar_p','datetime_initial','datetime_final','t_paramID','t_ci',...
-        'iter_history','output_folder','sel_k','truth_param','theta_0_true','LM_options','J_LM','bounds','alg_states');
+        'iter_history','output_folder','sel_k','selection_vector','truth_param','theta_0_true','LM_options','J_LM','bounds','alg_states');
 
-        matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);
+        matlabmail('ztakeo@berkeley.edu','Conf. Interval complete','',[]);
 
         %% Plot Results: plot figure of truth and estimated values w/ C.I.'s
 %         Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states)

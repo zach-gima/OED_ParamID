@@ -2,31 +2,54 @@
 % (1) load final group Param ID results
 % (2) copy/paste below and run:
 
-function param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds)
+function param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag)
     % Indexing related variables
-    n=length(paramID_out.save_param_org(1,:));
+    num_iter=length(paramID_out.save_param_org(1,:));
     names={'G1','G1,G2','G1,G2,G3','G1,G2,G3,G4'};
-    for i = [1:n]
-    %indicates which variables were identified (currently Group 4, so all but the eq. struct. params)
-    sel_k = find(selection_vector(:,1)); %indices of the selected parameter values
+    
+    %indicates which variables were identified
+    sel_k = find(selection_vector(:,group)); %indices of the selected parameter values
+    
+    % initialize Final param vector; used to update params
+    Final_param = zeros(length(theta_0_true),1);
+    
+    %Setup .gif saving info
+%     h = figure(2);
+%     set(gcf,'Position',[100 100 900 700],'PaperPositionMode','auto');
+% 
+%     axis tight manual % this ensures that getframe() returns a consistent size
+    filename = 'dartboard.gif';
 
-    park0 = paramID_out.save_param_org(:,i); %loads the identified parameters. 
+    % Animate each L-M iteration of Param updates
+    for i = 1:num_iter
 
-    theta_0 = zeros(21,1);
-    theta_0(sel_k) = park0;
-    drawnow nocallbacks
-    param_table_animator_DKK(ci95_full,theta_0,theta_0_true,truth_param,bounds);
-    title(names{group});
-    drawnow;
-    pause(wait);
-    %@Zach Uncomment the line below to advance one step on eyboard input
-    %input('advance');
+        park0 = paramID_out.save_param_org(:,i); %loads the identified parameters. 
+        Final_param(sel_k) = park0; %update Final_param with current iteration
+
+        %     theta_0 = zeros(21,1);
+        %     theta_0(sel_k) = park0;
+        drawnow nocallbacks
+
+        % Plot. Note param_table_plotter should always use final group's
+        % selection_vector
+        g = param_table_plotter_ZTG('animate',selection_vector(:,end),ci95_full,Final_param,theta_0_true,truth_param,bounds);
+
+        title(names{group});
+        drawnow;
+        pause(wait);
+
+        % Capture the plot as an image 
+        frame = getframe(g); 
+        im = frame2im(frame); 
+        [imind,cm] = rgb2ind(im,256); 
+        
+        % Write to the GIF File 
+      if i == 1 && flag == 1
+          imwrite(imind,cm,filename,'gif','Loopcount',inf); 
+      else 
+          imwrite(imind,cm,filename,'gif','WriteMode','append'); 
+      end 
+        %@Zach Uncomment the line below to advance one step on eyboard input
+        %         input('advance');
     end
-    %Zach note for Dylan: 
-    % When I first thought of animating the function, I figured I would need to
-    % call the param_table_plotter_ZTG in a for loop. Ignore if you find a
-    % better way, but if that's the route you take then you'll also need to
-    % update (1) selection_vector and (2) park0 within the for loop depending
-    % on which Group of parameters you're animating. Or if you're animating all
-    % of the parameters at the same time, then maybe it's not an issue.
 end

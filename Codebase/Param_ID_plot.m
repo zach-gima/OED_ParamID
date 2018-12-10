@@ -4,6 +4,13 @@
 % newer; issue w/ errorbar class
 
 function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states)
+    % Set selection vector (in the future just save to results .mat file and
+    % read in)
+    %%%% MAKE SURE CONSISTENT w/ selection_vector set in init_ParamID.m
+    selection_vector = zeros(25,2);
+    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
+    selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
+    
     % Parse L-M Conditions
     param_exit_thresh = LM_options.exit_cond(1);
     chi_sq_exit_thresh = LM_options.exit_cond(2);
@@ -14,17 +21,17 @@ function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_pa
     %% ParamID Dartboard
     park0 = paramID_out.save_param_org(:,end); %loads the identified parameters. 
 
-    theta_0 = zeros(21,1);
-    theta_0(sel_k) = park0;
+    Final_param = zeros(length(theta_0_true),1);
+    Final_param(sel_k) = park0;
     
     %%% Static Figure
-    param_table_plotter_ZTG(ci95_full,theta_0,theta_0_true,truth_param,bounds);
+    param_table_plotter_ZTG('static',selection_vector(:,end),ci95_full,Final_param,theta_0_true,truth_param,bounds);
 
     savefig(strcat(output_folder,'param_estimates.fig'))
     print(strcat(output_folder,'param_estimates'),'-dpng')
 
-    %%% GIF
-%     animate_DKK(output_folder,ci95_full,paramID_out,theta_0_true,truth_param,bounds)
+    %% GIF
+    animate_DKK(output_folder,selection_vector,truth_param)
 
     %% Plot Individual Parameter Evolution
     
@@ -63,22 +70,22 @@ function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_pa
     savefig(strcat(output_folder,'cost_fcn.fig'))
     print(strcat(output_folder,'cost_fcn'),'-dpng')
     
-    %% Plot algebraic states rmse 
-    %%% need to fix this by pulling only some of the values from the cells
-    %%% (dimension mismatch currently)
-    Num_inputs = length(paramID_out.Time_exp);
-    cssn_sim = cell(Num_inputs,1);
-    cssp_sim = cell(Num_inputs,1);
-    etan_sim = cell(Num_inputs,1);
-    etap_sim = cell(Num_inputs,1);
-    
-    for idx = 1:Num_inputs
-       % Parse specific algebraic states of interest
-       cssn_sim{idx} = alg_states{idx}.cssn_sim;
-       cssp_sim{idx} = alg_states{idx}.cssp_sim;
-       etan_sim{idx} = alg_states{idx}.etan_sim;
-       etap_sim{idx} = alg_states{idx}.etap_sim;
-    end
+%     %% Plot algebraic states rmse
+%     %%% need to fix this by pulling only some of the values from the cells
+%     %%% (dimension mismatch currently)
+%     Num_inputs = length(paramID_out.Time_exp);
+%     cssn_sim = cell(Num_inputs,1);
+%     cssp_sim = cell(Num_inputs,1);
+%     etan_sim = cell(Num_inputs,1);
+%     etap_sim = cell(Num_inputs,1);
+%     
+%     for idx = 1:Num_inputs
+%        % Parse specific algebraic states of interest
+%        cssn_sim{idx} = alg_states{idx}.cssn_sim;
+%        cssp_sim{idx} = alg_states{idx}.cssp_sim;
+%        etan_sim{idx} = alg_states{idx}.etan_sim;
+%        etap_sim{idx} = alg_states{idx}.etap_sim;
+%     end
     
     %% plot RMSE evolution vs. time
     % use vertcat for adding in very initial RMSE

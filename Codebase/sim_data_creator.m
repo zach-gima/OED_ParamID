@@ -121,6 +121,8 @@ for mm = 1:Num_groups
         min_V = min(V_LM_CELL{end});
         fprintf('Exp. %i has min V = %0.3f \n',max_exp_num(exp_idx),min_V);
         
+        max_V = max(V_LM_CELL{end});
+        fprintf('Exp. %i has max V = %0.3f \n',max_exp_num(exp_idx),max_V);
         % Update exp_idx, used to keep track of which max_exp_num we're on
         exp_idx = exp_idx + 1;
     end

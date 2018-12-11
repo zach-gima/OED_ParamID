@@ -31,7 +31,8 @@ params = {'$D_s^{^{\_}}$','$D_s^+$','$R_s^-$','$R_s^+$',...
 params_reduced = params; % for tracking parameters remaining as some are eliminated
 
 %% Load Inputs & Parameters
-
+% Set output folder
+output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/Tmax60/';
 % load parameters (p struct)
 run /Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/param/params_NCA.m
 
@@ -60,7 +61,7 @@ num_exp = length(sens_files);
 %%% sensitivities. find_admissable_experiment_sets then saves the results
 %%% into exp_info.mat, which can be loaded from thereon.
 
-[STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds);
+[STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
 
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
@@ -110,10 +111,14 @@ params_final_idx = remaining(Np,removed);
 params_remaining = params(params_final_idx)';
 
 %% RePlot Cardinality & Orth Sensitivity for Remaining Params
-plotcardinality(A_new, params,removed,Np);
+fig = plotcardinality(A_new, params,removed,Np);
+savefig(fig,strcat(output_folder,'cardinality_final_Tmax60'));
+saveas(fig,strcat(output_folder,'cardinality_final_Tmax60.png'));
 
-param_sens_ranking = plotcsensorth(Sens_orth_new, params, removed, -5,Np);
+[fig,param_sens_ranking] = plotcsensorth(Sens_orth_new, params, removed, -5,Np);
 param_sens_ranking = fliplr(param_sens_ranking)'; % note that the sens. ranking comes out lowest to highest; use fliplr to flip
+savefig(fig,strcat(output_folder,'orthsens_final_Tmax60'));
+saveas(fig,strcat(output_folder,'orthsens_final_Tmax60.png'))
 
 %% Find Experiment that Maximizes Sensitivity for each param
 % determine final number of parameters left; should be same as # rows in A_new and sens_orth_new

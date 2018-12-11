@@ -1,10 +1,10 @@
-function [ind] = plotcsensorth( Sens_orth,params, removed , lb ,Np)
+function [fig,ind] = plotcsensorth( Sens_orth,params, removed , lb ,Np)
     %Take matrix A where A_ij = j if parameter i is above the threshold for
     %experiment j
     rem = remaining(Np , removed);
     Np=Np - length(removed);
     fs=12;
-    figure(); clf;
+    fig = figure(); clf;
     %set(gcf,'Position',[234     3   564   695-105],'PaperPositionMode','auto');
     %[pl,ind]=sort(sum((A~=0)'))
     [pl,ind]=sort(mean(log10(Sens_orth'))); % ind dicates the ranking of the parameters based on sens. magnitude

@@ -1,4 +1,4 @@
-function [STSnorm,Sens_Mag,sens,NT_mat,exp_ind,num_exp] = find_admissable_experiment_sets(p,params,removed,Np,path,num_exp,r,bounds)
+function [STSnorm,Sens_Mag,sens,NT_mat,exp_ind,num_exp] = find_admissable_experiment_sets(p,params,removed,Np,path,num_exp,r,bounds,output_folder)
 
     %% Normalization
     normalize_sens_factor = normalizesens(p,bounds);
@@ -43,11 +43,15 @@ function [STSnorm,Sens_Mag,sens,NT_mat,exp_ind,num_exp] = find_admissable_experi
     end
 
     %% Plot Cardinality
-    plotcardinality(A, params,removed,Np);
-    
+    fig = plotcardinality(A, params,removed,Np);
+    savefig(fig,strcat(output_folder,'cardinality_initial_Tmax60'));
+    saveas(fig,strcat(output_folder,'cardinality_initial_Tmax60.png'));
+
     %% Plot Orth Sensitivity
-    plotcsensorth(Sens_orth, params, removed, -15, Np);
-    
+    fig = plotcsensorth(Sens_orth, params, removed, -15, Np);
+    savefig(fig,strcat(output_folder,'orthsens_initial_Tmax60'));
+    saveas(fig,strcat(output_folder,'orthsens_initial_Tmax60.png'))
+
     %% Find Subsets
     %subsets=findsubsets(A, params)
     %%

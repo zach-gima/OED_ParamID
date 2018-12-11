@@ -75,7 +75,7 @@ function [g] = param_table_plotter_ZTG(mode,selection_vector,ci95,Final_param,th
     % Load confidence intervals
     Final_CI = ci95;
 
-    Final_CI = Final_CI + Final_param;        
+    Final_CI = Final_CI + Final_param;   %%%%%% ZTG 2018-12-10 why add the Final_param value here?
     Selected_CI = Final_CI(sel_k);  
     
     %% Parameter bound
@@ -87,7 +87,7 @@ function [g] = param_table_plotter_ZTG(mode,selection_vector,ci95,Final_param,th
     % These variables are Num. Param x 1 length;
     normalized_truth_bar(sel_k) = origin_to_norm('param',Selected_truthParam,bounds,selection_vector);
     normalized_theta_bar(sel_k) = origin_to_norm('param',Selected_params,bounds,selection_vector);                     
-    normalized_CI_bar(sel_k) = origin_to_norm('sens',Selected_CI,bounds,selection_vector);
+    normalized_CI_bar(sel_k) = origin_to_norm('param',Selected_CI,bounds,selection_vector);
 
 %     % NOTE: IF USING origin_to_norm_MinMax(...), WILL HAVE TO REWRITE IT
 %     SO THAT IT ACCOMODATES THE NEW PARAMS_BOUNDS NOTATION
@@ -104,8 +104,14 @@ function [g] = param_table_plotter_ZTG(mode,selection_vector,ci95,Final_param,th
     % convert index
     truth_value = normalized_truth_bar(params_idx_from_original)';
     x_value = normalized_theta_bar(params_idx_from_original)';
+%     Final_CI_norm = bsxfun(@times,normalized_CI_bar,Final_CI);
+%     norm_err = Final_CI_norm(params_idx_from_original)';
+% %     norm_err = bsxfun(@times,normalized_CI_bar(params_idx_from_original)',Final_CI);
+%     norm_err = x_value - norm_err;
+%     
     err = normalized_CI_bar(params_idx_from_original)';
     err = x_value - err;
+    
 %     err(3) = -2; % This is because different normalization scheme. i.e, log-normal. So manually change it.
 %     err(2) = -2; % This is because different normalization scheme. i.e, log-normal. So manually change it.
     initial_value = normalized_initial_theta_bar(params_idx_from_original);

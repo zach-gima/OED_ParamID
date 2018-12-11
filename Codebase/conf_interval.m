@@ -40,11 +40,12 @@ function [J_LM,ci95,sigma_y,covar_p,alg_states] = conf_interval(p, Inputs, SensS
 
 
 
-%     sig_y_hat = (1/DoF)*(y_minus_yfit'*y_minus_yfit);
-    
     %%% Only simulation case.
     weight = 1; 
     %%% Experiment case.
+%     DoF = total_NT - num_param +1;
+%     sig_y_hat = (1/DoF)*(y_minus_yfit'*y_minus_yfit);
+    
 %     weight = eye(1)/sig_y_hat;
 
     covar_p = inv(J_LM'* weight * J_LM);

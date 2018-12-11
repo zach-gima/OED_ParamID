@@ -23,7 +23,7 @@ param_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called StepTol)
 chi_sq_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called FuncTol)
 
 LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh];
-LM_options.maxIter = 30;
+LM_options.maxIter = 20;
 
 LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
 

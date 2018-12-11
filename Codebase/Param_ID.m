@@ -218,7 +218,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
 
             norm_park0 = norm_park0 + delta_theta;
-            norm_park0 = min(max(normalize_params_min,norm_park0),normalize_params_max);
+            norm_park0 = min(max(normalize_params_min,norm_park0),normalize_params_max); % min max routine prevents parameter value from violating bounds
             save_param_nmz(:,LM_Iter)=norm_park0;
             save_param_org(:,LM_Iter)=norm_to_origin(norm_park0,bounds,selection_vector);
 

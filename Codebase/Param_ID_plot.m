@@ -102,9 +102,11 @@ function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_pa
     print(strcat(output_folder,'rmse_evolution'),'-dpng')
 
     %% Plot Normalized Distance between True and Estimated Parameters
-    norm_param_dist = zeros(size(paramID_out.save_param_org,2),1);
-    for ii = 1:size(paramID_out.save_param_org,2)
-        norm_param_dist(ii) = norm(truth_param(sel_k)-paramID_out.save_param_org(:,ii),2);
+    norm_param_dist = zeros(size(paramID_out.save_param_nmz,2),1);
+    norm_truth_param = origin_to_norm('param',truth_param(sel_k),bounds,selection_vector(:,end));
+    
+    for ii = 1:size(paramID_out.save_param_nmz,2)
+        norm_param_dist(ii) = norm(norm_truth_param-paramID_out.save_param_nmz(:,ii),2);
     end
     
     figure('Position', [100 100 900 700])

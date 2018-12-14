@@ -4,7 +4,7 @@ clear all
 clc
 
 % Load Resuts
-result_folder = '/Users/ztakeo/Box Sync/HPC1/03-Dec-2018 20_08_19/';
+result_folder = '/Users/ztakeo/Box Sync/HPC/HPC1/03-Dec-2018 20_08_19/';
 result_filename = 'G2G1_nom.mat';
 result_path = strcat(result_folder,result_filename);
 load(result_path);

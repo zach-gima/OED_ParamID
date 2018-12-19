@@ -15,11 +15,26 @@ clc
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax45.mat');
 
 senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
-inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
-inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat');
 
-rmdir(inputrawpath,'s'); % delete folder first (assuming it exists); this prevents the folder from keeping older .mat files
+%%%%% Regular Case
+% inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
+% inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat','results'); 
+
+%%%%% Perturbation Case
+%Minus50
+% inputfinalpath = 'InputLibrary/MaxSensInputs/minus50/';
+% inputrawpath = 'InputLibrary/MaxSensInputs/minus50/Unformatted/';
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_minus50.mat','results'); 
+
+%Plus50
+inputfinalpath = 'InputLibrary/MaxSensInputs/plus50/';
+inputrawpath = 'InputLibrary/MaxSensInputs/plus50/Unformatted/';
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_plus50.mat','results'); 
+
+if exist(inputrawpath,'dir') == 7
+    rmdir(inputrawpath,'s'); % delete folder first (assuming it exists); this prevents the folder from keeping older .mat files
+end
 mkdir(inputrawpath);
 
 % Set Number of Groups and params in each group

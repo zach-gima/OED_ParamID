@@ -11,9 +11,20 @@ clc
 % senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
 % outputfolderpath  = 'Plots/InputAnalysis/Tmax45/';
 
+%%%%% Regular Case
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
+% outputfolderpath  = 'Plots/InputAnalysis/Tmax60/';
 
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-outputfolderpath  = 'Plots/InputAnalysis/Tmax60/';
+%%%%% Perturbation Case
+%minus50
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/minus50/Unformatted/';
+% outputfolderpath  = 'Plots/Perturb/InputAnalysis/minus50/';
+
+%plus50
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/plus50/Unformatted/';
+outputfolderpath  = 'Plots/Perturb/InputAnalysis/plus50/';
+
+
 
 rmdir(outputfolderpath,'s');
 mkdir(outputfolderpath);

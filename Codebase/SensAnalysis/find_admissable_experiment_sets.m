@@ -22,13 +22,11 @@ function [STSnorm,Sens_Mag,sens,NT_mat,exp_ind,num_exp] = find_admissable_experi
     NT_mat=zeros(1,num_exp);
     exp_ind = zeros(1,num_exp);
     
-
     mu = 10^-4;
     for i=1:num_exp
         t=r(i).name;
-
         if and(min(t(end-3:end) == '.mat'),t(1)~='e')
-%             disp(t);
+%                 disp(t);
             index=str2double(t(1:end-4));
             exp_ind(i) = index; % use for storing experiment numbers to find later
 %             disp(index);
@@ -39,7 +37,6 @@ function [STSnorm,Sens_Mag,sens,NT_mat,exp_ind,num_exp] = find_admissable_experi
         else
             continue
         end
-
     end
 
     %% Plot Cardinality

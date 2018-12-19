@@ -32,7 +32,10 @@ params_reduced = params; % for tracking parameters remaining as some are elimina
 
 %% Load Inputs & Parameters
 % Set output folder
-output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/Tmax60/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/Tmax60/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/Perturb/SensAnalysis/minus50/';
+output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/Perturb/SensAnalysis/plus50/';
+
 % load parameters (p struct)
 run /Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/param/params_NCA.m
 
@@ -46,7 +49,9 @@ senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
 
 % Set output filename
 % output_filename = 'max_sens_experiments_Tmax45.mat';
-output_filename = 'max_sens_experiments_Tmax60.mat';
+% output_filename = 'max_sens_experiments_Tmax60.mat';
+% output_filename = 'max_sens_experiments_minus50.mat';
+output_filename = 'max_sens_experiments_plus50.mat';
 
 % Load sens files
 sens_files = dir(senspath);
@@ -55,20 +60,107 @@ sens_files = dir(senspath);
 sens_files=sens_files(~ismember({sens_files.name},{'.','..','.DS_Store'}));
 num_exp = length(sens_files);
 
+
+%% Perturbation Analysis %%%%%%%%%
+%%% Comment out this section to not run
+%%% All true params except group X; perturb group X 10% away from
+%%% true values. 
+run /Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/param/params_nominal.m
+theta_0 = Nominal_param;
+
+% Load feasible inputs for perturbed parameter sets
+% perturb_path = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults_Perturb/minus50.mat';
+perturb_path = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults_Perturb/plus50.mat';
+load(perturb_path);
+perturb_admissable = arr;
+
+% change this to indicate how many groups are being perturbed; e.g. for G2G1, num_groups = 2
+num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
+
+% Perturb parameters of interest all at the beginning
+% perturb_index = find(selection_vector(:,1)); % G1
+selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
+perturb_index = find(selection_vector(:,2)); %G1 & G2
+
+% perturb_factor = 0.5; % minus50
+perturb_factor = 1.5; % plus50
+theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
+
+% Display Analysis Info
+fprintf('Perturbation Analysis Experiment \n');
+fprintf('Groups 1->%i \n',num_perturbedgroups); 
+fprintf('Number of parameters: %i \n',length(perturb_index));
+fprintf('Perturb Factor = %5.2f \n \n', perturb_factor);
+
+% Overwrite the nominal values in the param struct w/ true values
+p.D_s_n0 = theta_0(1); %[G2]
+p.D_s_p0 = theta_0(2); %[G2]
+p.R_s_n = theta_0(3); %[G1]
+p.R_s_p = theta_0(4); %[G1]
+% p.epsilon_s_n = theta_0(5); %  Equil. Struct
+% p.epsilon_s_p = theta_0(6); %  Equil. Struct
+p.sig_n = theta_0(7);
+p.sig_p = theta_0(8);
+p.ElecFactorD = theta_0(9); %[G2]
+p.epsilon_e_n = theta_0(10); %[G2]
+p.epsilon_e_s = theta_0(11);
+p.epsilon_e_p = theta_0(12);
+p.ElecFactorK = theta_0(13); %[G2]
+p.t_plus = theta_0(14);
+p.ElecFactorDA = theta_0(15); %[G2]
+p.k_n0 = theta_0(16);
+p.k_p0 = theta_0(17);
+p.R_f_n = theta_0(18);
+p.R_f_p = theta_0(19);
+% p.n_Li_s = theta_0(20); %  Equil. Struct
+p.c_e0 = theta_0(21);
+p.E.Dsn = theta_0(22);
+p.E.Dsp = theta_0(23);
+p.E.kn = theta_0(24);
+p.E.kp = theta_0(25);
+
+%%% Update Dependencies
+% Specific interfacial surface area
+p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
+p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
+
+% make element to caclulate phi_{s} by Saehong Park 
+p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
+p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
+
+% Check whether the perturbed value exceeds a pre-set bound (params_bounds)
+% If so, then replace the bound with the initial value
+for ii = 1:length(theta_0)  
+    
+    % Initial Value > Upper Bound
+    if theta_0(ii) > bounds.max(ii)
+        bounds.max(ii) = theta_0(ii);
+        fprintf('Parameter %i perturbed past upper bound \n', ii);
+    end
+    
+    % Initial Value < Lower Bound
+    if theta_0(ii) < bounds.min(ii)
+        bounds.min(ii) = theta_0(ii);
+        fprintf('Parameter %i perturbed past lower bound \n', ii);
+    end
+    
+end
+
 %% extract info from experiments
 
 %%% Run the below function the first time after recalculating
 %%% sensitivities. find_admissable_experiment_sets then saves the results
 %%% into exp_info.mat, which can be loaded from thereon.
 
-[STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
+% [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
 
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 
 if num_exp ~= length(sens)
     error('Check that senspath and exp_info.mat file are consistent i.e. have same # of experiments')
 end
+
 %% find parameters removed from clustering
 removed = findclusterparams(STSnorm,Sens_Mag, threshold,Np,num_exp);
 
@@ -112,25 +204,46 @@ params_remaining = params(params_final_idx)';
 
 %% RePlot Cardinality & Orth Sensitivity for Remaining Params
 fig = plotcardinality(A_new, params,removed,Np);
-savefig(fig,strcat(output_folder,'cardinality_final_Tmax60'));
-saveas(fig,strcat(output_folder,'cardinality_final_Tmax60.png'));
+% savefig(fig,strcat(output_folder,'cardinality_final_Tmax60'));
+% saveas(fig,strcat(output_folder,'cardinality_final_Tmax60.png'));
+% savefig(fig,strcat(output_folder,'cardinality_final_minus50'));
+% saveas(fig,strcat(output_folder,'cardinality_final_minus50.png'));
+savefig(fig,strcat(output_folder,'cardinality_final_plus50'));
+saveas(fig,strcat(output_folder,'cardinality_final_plus50.png'));
 
 [fig,param_sens_ranking] = plotcsensorth(Sens_orth_new, params, removed, -5,Np);
 param_sens_ranking = fliplr(param_sens_ranking)'; % note that the sens. ranking comes out lowest to highest; use fliplr to flip
-savefig(fig,strcat(output_folder,'orthsens_final_Tmax60'));
-saveas(fig,strcat(output_folder,'orthsens_final_Tmax60.png'))
+% savefig(fig,strcat(output_folder,'orthsens_final_Tmax60'));
+% saveas(fig,strcat(output_folder,'orthsens_final_Tmax60.png'))
+% savefig(fig,strcat(output_folder,'orthsens_final_minus50'));
+% saveas(fig,strcat(output_folder,'orthsens_final_minus50.png'))
+savefig(fig,strcat(output_folder,'orthsens_final_plus50'));
+saveas(fig,strcat(output_folder,'orthsens_final_plus50.png'))
 
 %% Find Experiment that Maximizes Sensitivity for each param
 % determine final number of parameters left; should be same as # rows in A_new and sens_orth_new
 max_sens = zeros(size(Np_final));
 max_exp_idx = zeros(size(Np_final));
 
-% Iterate through orthogonalized sensitivity matrix rows (i.e. params)
+% %%%% Iterate through orthogonalized sensitivity matrix rows (i.e. params)
+% for ii = 1:Np_final
+%     [max_sens(ii),max_exp_idx(ii)] = max(Sens_orth_new(ii,:));
+% end
+
+%%%%%% Method when using perturbed parameter set 
+[Sens_orth_sort,sort_idx] = sort(Sens_orth_new,2,'descend');
+
 for ii = 1:Np_final
-    [max_sens(ii),max_exp_idx(ii)] = max(Sens_orth_new(ii,:));
+    for jj = 1:length(Sens_orth_sort)
+        if ismember(exp_ind(sort_idx(ii,jj)),perturb_admissable)
+           max_sens(ii) = Sens_orth_sort(ii,jj);
+           max_exp_idx(ii) = sort_idx(ii,jj);
+           break;
+        end
+    end
 end
 
-% max_exp_idx gives the index (columwise from 1:1587) in the Sens_orth_new matrix corresponding to
+% max_exp_idx gives the index (columwise from 1:num_exp) in the Sens_orth_new matrix corresponding to
 % the input that maximizes sensitivity for that parameter; however, the
 % column index in this matrix != the actual experiment number (i.e. exp. #10 isn't in the 10th spot of the experiment array. 
 % To get this, need to grab the experiment numbers in exp_ind corresponding to this indice value (max_exp_idx). 
@@ -147,8 +260,14 @@ max_exp_sorted = max_exp_num(param_sens_ranking);
 %%% Check that each parameter in the group is above the sens threshold for
 %%% each input
 A_sort = A_new(param_sens_ranking,:);
-group1_size = 7;
-group2_size = 7;
+group1_size = 6;
+group2_size = 7; %%%is this right?
+
+%check that group sizes set add up to total number of params to be
+%identified
+if group1_size + group2_size ~= length(params_sorted)
+    error('Check group sizes and make consistent with number of parameters remaining after sensitivity and clustering analysis');
+end
 
 fprintf('\n')
 disp('Check that all parameters in Group 1 are identifiable for each input in that group.')
@@ -170,6 +289,7 @@ for mm = 1:group2_size
     end
 end
 disp('Complete')
+
 %% Compile results
 results.params_remaining = params_remaining;
 results.max_exp_num = max_exp_num;

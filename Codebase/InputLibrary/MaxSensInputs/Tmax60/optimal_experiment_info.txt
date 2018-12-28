@@ -1,0 +1,11 @@
+Exp. 1381 has Tamb = 0, V_0 = 3.948, SOC_0 = 0.80 
+Exp. 21 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
+Exp. 221 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
+Exp. 226 has Tamb = 0, V_0 = 3.456, SOC_0 = 0.20 
+Exp. 239 has Tamb = 0, V_0 = 3.769, SOC_0 = 0.60 
+Exp. 245 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
+Exp. 580 has Tamb = 0, V_0 = 3.456, SOC_0 = 0.20 
+Exp. 638 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
+Exp. 867 has Tamb = 0, V_0 = 3.769, SOC_0 = 0.60 
+Exp. 875 has Tamb = 0, V_0 = 3.948, SOC_0 = 0.80 
+Exp. 930 has Tamb = 20, V_0 = 3.948, SOC_0 = 0.80 

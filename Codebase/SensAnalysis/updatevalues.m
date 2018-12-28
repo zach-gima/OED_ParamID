@@ -20,7 +20,8 @@ function [ A, Sens_orth ] = updatevalues( sens, removed, NT, Np, r)
         end
 
         % apply sensitivity threshold; if parameters not above noise
-        % sensitivitiy threshold, then A will store a 0; otherwise a 1
+        % sensitivitiy threshold, then A will store a 0; otherwise the
+        % experiment index
         A(:,i) = index*(abs(D)>(mu*sqrt(NT(i))));
         Sens_orth(:,i)=abs(D);
     end

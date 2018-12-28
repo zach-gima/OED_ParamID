@@ -5,7 +5,7 @@ clc
 clearvars
 close all
 
-datetime_initial = datetime('now','TimeZone','America/Los_Angeles')
+datetime_initial = datetime('now','TimeZone','America/Los_Angeles');
 
 %Load CasADi
 % addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows')
@@ -25,7 +25,9 @@ chi_sq_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called FuncTol)
 LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh];
 LM_options.maxIter = 20;
 
-LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
+% ZTG Note: Tends to be instability when starting group 2; i.e. big parameter estimates cause CasADi errors; try being more conservative initially when starting group 2 
+% LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
+ctrl_lambda = [1e-2;100];
 
 %%% Number of parameter groups
 num_groups = 2;
@@ -84,10 +86,16 @@ mkdir(output_folder); %create new subfolder with current date in output_folder
 [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(approach,init_cond,input_folder,output_folder);
 
 %% Display Simulation Info
-fprintf('Initial Conditions: %s \n \n',init_cond);
 
+%try/catch structure used to send email alert if program exits w/ error
+% For saving errors:
+error_filename = strcat(output_folder,'sim_log.txt');
+diary(error_filename)
+
+datetime_initial
+fprintf('Initial Conditions: %s \n \n',init_cond);
 disp('Levenberg-Marquardt Params')
-fprintf('Initial Lambda: %5.2e \n',LM_options.ctrl_lambda);
+fprintf('Initial Lambda: %5.2e \n',ctrl_lambda);
 fprintf('Param Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(1));
 fprintf('Cost Function Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(2));
 fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
@@ -176,11 +184,6 @@ end
 % Note: To use for Savio, probably need a separate main script with the
 % Savio header
 
-%try/catch structure used to send email alert if program exits w/ error
-% For saving errors:
-error_filename = strcat(output_folder,'sim_log.txt');
-diary(error_filename)
-
 %initialize vectors for storing metrics and other data
 datetime_paramID = cell(num_groups,1);
 t_paramID = 0;
@@ -197,6 +200,9 @@ try
 %         filename_input_vector{1} = strcat(input_folder,'V_sim_debug_capiaglia'); %debugging input (much shorter)
 %         selection_vector(:,1) = selection_vector(:,end); %selection vector = all params; use for debugging with true initial parms
         %%%%%%%%% Debug %%%%%%%%%%%%%%
+        
+        %% Change lambda depending on the group being identified (see note earlier about why)
+        LM_options.ctrl_lambda = ctrl_lambda(jj);
         
         %% Load Group Specific Inputs
         filename_input = filename_input_vector{jj};

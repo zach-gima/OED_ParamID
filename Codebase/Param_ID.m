@@ -450,7 +450,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     end
 
     disp('After LM estimation')
-    fprintf('Final Parameter Values: %1.6f \n',park0)    
+    fprintf('Final Parameter Values: %1.5e \n',park0)    
     
     %% Concatenate Outputs & Save Results
     paramID_out.exp_num = exp_num;

@@ -6,12 +6,12 @@ function animate_DKK(output_folder,selection_vector,truth_param)
     flag = 1; % for gif making purposes
     load(strcat(output_folder,'G1_nom.mat'),'ci95_full','paramID_out','theta_0_true','bounds');
     group = 1;
-    param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag)
+    param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
 
     flag = 0; % for gif making purposes
     load(strcat(output_folder,'G2G1_nom.mat'),'ci95_full','paramID_out','theta_0_true','bounds');
     group = 2;
-    param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag)
+    param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
 
 %     load(horzcat(output_folder,'G3G2G1_nom.mat'))
 %     selection_vector = [1;1;1;1;0;0;0;0;1;1;0;1;1;0;1;1;0;1;1;0;1];

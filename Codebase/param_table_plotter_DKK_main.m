@@ -2,7 +2,7 @@
 % (1) load final group Param ID results
 % (2) copy/paste below and run:
 
-function param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag)
+function param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
     % Indexing related variables
     num_iter=length(paramID_out.save_param_org(1,:));
     names={'G1','G1,G2','G1,G2,G3','G1,G2,G3,G4'};
@@ -18,7 +18,7 @@ function param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_o
 %     set(gcf,'Position',[100 100 900 700],'PaperPositionMode','auto');
 % 
 %     axis tight manual % this ensures that getframe() returns a consistent size
-    filename = 'dartboard.gif';
+    filename = strcat(output_folder,'dartboard.gif');
 
     % Animate each L-M iteration of Param updates
     for i = 1:num_iter

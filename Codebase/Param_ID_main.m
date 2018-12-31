@@ -73,11 +73,14 @@ theta_0 = Nominal_param;
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
 input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
 % output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
-output_folder = strcat('C:/Users/zgima/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/'); %HPC-2 Path
+% output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
+output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 
 mkdir(output_folder); %create new subfolder with current date in output_folder
 % output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder

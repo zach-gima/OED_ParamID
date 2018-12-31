@@ -768,14 +768,14 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             SOC(k+1) = (mean(c_avg_n(:,k+1)) - cn_low) / (cn_high - cn_low);
 
             if v_sim(:,k+1) <= p.volt_min
-                error('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
-    %             fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
+%                 error('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
+                fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
     %             break;
             end
 
             if v_sim(:,k+1) >= p.volt_max
-                error('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
-    %             fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
+%                 error('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
+                fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
     %             break;
             end
             

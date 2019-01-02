@@ -305,11 +305,10 @@ try
         'iter_history','output_folder','sel_k','selection_vector','truth_param','theta_0_true','LM_options','J_LM','bounds','alg_states');
 
         matlabmail('ztakeo@berkeley.edu','Conf. Interval complete','',[]);
-
-        %% Plot Results: plot figure of truth and estimated values w/ C.I.'s
-        Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states,selection_vector)
-        
     end
+    
+    %% Plot Results: plot figure of truth and estimated values w/ C.I.'s
+    Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states,selection_vector)    
 
 catch e %e is an MException struct
     % An error will put you here.

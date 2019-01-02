@@ -52,12 +52,9 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
 %     selection_vector(:,3) = [1;1;1;1;0;0;0;0;1;1;0;1;1;0;1;1;0;1;1;0;1;0;0;0;0]; %G3
 %     selection_vector(:,4) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;0;0;0;0]; %G4
     
-    % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
-    % Starting off just trying 2 groups of params
-    % [ZTG Updated 2018-11-27]
-    selection_vector = zeros(25,2);
-    selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
-    selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
+
+
+
     
 %     % File I/O
 %     % Input filenames
@@ -73,13 +70,27 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
     filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
     
-    % Create output filenames
+    % Create output filenames and selection vector depending on approach
     filename_output_vector = cell(2,1);
+    selection_vector = zeros(25,2);
+    
     if strcmp(approach{2},'all_') == 1
+        %Set output filename
         filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
+        
+        %Set selection vector
+        selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; %G1
+        
     else % cumulative approach
+        %Set output filename
         filename_output_vector{1} = strcat(output_folder,approach{1},init_cond,'.mat');
         filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
+        
+        % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
+        % Starting off just trying 2 groups of params
+        % [ZTG Updated 2018-11-27]
+        selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
+        selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
     end
 
     %% Confidence Interval variables

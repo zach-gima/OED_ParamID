@@ -27,7 +27,7 @@ LM_options.maxIter = 20;
 
 % ZTG Note: Tends to be instability when starting group 2; i.e. big parameter estimates cause CasADi errors; try being more conservative initially when starting group 2 
 % LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
-ctrl_lambda = [1e-2;100];
+ctrl_lambda = [1e-2;1e-2];
 
 %%% Number of parameter groups
 num_groups = 2;
@@ -75,7 +75,7 @@ theta_0 = Nominal_param;
 input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
-
+%input_folder = strcat('InputLibrary/ValidationCycles/');
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
 % output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');

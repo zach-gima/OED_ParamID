@@ -19,7 +19,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 
 %     addpath('/Users/ztakeo/Documents/MATLAB/casadi') % Mac Laptop
 %     addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows') % HPC-1
-    addpath('C:/Users/zgima/Documents/MATLAB/casadi_windows') % HPC-2
+%     addpath('C:/Users/zgima/Documents/MATLAB/casadi_windows') % HPC-2
 
     import casadi.*
 

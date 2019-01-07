@@ -224,11 +224,6 @@ p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler 
 % Voltage_exp = cell(Num_inputs,1);
 % Rc_exp = cell(Num_inputs,1);
 % 
-% cssn_sim = cell(Num_inputs,1);
-% cssp_sim = cell(Num_inputs,1);
-% etan_sim = cell(Num_inputs,1);
-% etap_sim = cell(Num_inputs,1);
-% 
 % for i=1:Num_inputs 
 %     Current_exp{i} = eval(['Current_exp' num2str(i)]);
 %     Time_exp{i} = eval(['Time_exp' num2str(i)]);
@@ -242,14 +237,14 @@ SensFlag = 0; %Turn sensitivity calculation off or on
 
 %%%%Validation Cycles
 Num_inputs = 16;
-max_exp_num = {'C1';'C2';'C3';'C4';'C5';'C6';'C7';'C8';'D1';'D2';'D3';'D4';'D5';'D6';'D7';'D8'};
+exp_num = {'C1';'C2';'C3';'C4';'C5';'C6';'C7';'C8';'D1';'D2';'D3';'D4';'D5';'D6';'D7';'D8'};
 Current_exp_cell = cell(Num_inputs,1);
 Time_exp_cell = cell(Num_inputs,1);
 Voltage_exp_cell = cell(Num_inputs,1);
 T_amb_sim = cell(Num_inputs,1);
 
 for ii = 1:Num_inputs
-   input_filename = strcat('InputLibrary/ValidationCycles/Unformatted/',max_exp_num{ii});
+   input_filename = strcat('InputLibrary/ValidationCycles/Unformatted/',exp_num{ii});
    load(input_filename);
    Current_exp_cell{ii} = Current_exp;
    Time_exp_cell{ii} = Time_exp;
@@ -267,6 +262,12 @@ clear Current_exp_cell Time_exp_cell Voltage_exp_cell
 %% Call DFN function to simulate voltage (& sensitivity)
 V_LM_CELL = cell(Num_inputs,1);
 alg_states = cell(Num_inputs,1);
+cssn_sim = cell(Num_inputs,1);
+cssp_sim = cell(Num_inputs,1);
+etan_sim = cell(Num_inputs,1);
+etap_sim = cell(Num_inputs,1);
+T1_sim = cell(Num_inputs,1);
+T2_sim = cell(Num_inputs,1);
 
 SensSelec = selection_vector;
 sel_k = find(SensSelec);
@@ -276,7 +277,7 @@ parfor idx = 1:Num_inputs
 %     V_LM_CELL{idx} =  DFN_sim_noRc_ZTG(Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params); %, Rc_exp{idx});
 %    V_true{idx} = DFN_sim_noRc(Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params);
 
-   [V_LM_CELL{idx},alg_states{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params,SensFlag); % SensFlag == 0
+   [V_LM_CELL{idx},alg_states{idx}] = DFN_sim_casadi(p, exp_num{idx}, Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb_sim{idx}, SensSelec, Selected_params, SensFlag); % SensFlag == 0
    
    % Parse specific algebraic states of interest
    cssn_sim{idx} = alg_states{idx}.cssn_sim;
@@ -297,7 +298,7 @@ end
 % alg_states.etan_sim = etan_sim;
 % alg_states.etap_sim = etap_sim;
 
-save('V_sim_val.mat','max_exp_num','Time_exp','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim');%,'V_true','V_sens')%,'Rc_exp')
+save('V_sim_G2G1.mat','exp_num','Time_exp','T_amb_sim','T1_sim','T2_sim','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim');
 
 % V_LM_CELL = cell2mat(V_LM_CELL);
 % S_LM_CASADI = cell2mat(S_LM_CASADI);
@@ -310,7 +311,7 @@ save('V_sim_val.mat','max_exp_num','Time_exp','Current_exp','V_LM_CELL','cssn_si
 
 % V_diff = V_sens - V_LM_CELL
 
-%% uncommet to create .mat files where groups are combined G2G1, G3G2G1...
+%% uncomment to create .mat files where groups are combined G2G1, G3G2G1...
 % S1 = load('V_sim_G1.mat');
 % Current_exp_1 = S1.Current_exp;
 % Time_exp_1 = S1.Time_exp;

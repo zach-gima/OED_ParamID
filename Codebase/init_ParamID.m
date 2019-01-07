@@ -74,12 +74,18 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     filename_output_vector = cell(2,1);
     selection_vector = zeros(25,2);
     
+    ci_select = cell(2,1);
+    ci_input_vector = cell(2,1);
+
     if strcmp(approach{2},'all_') == 1
         %Set output filename
         filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
         
         %Set selection vector
         selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; %G1
+        
+        ci_select{2} = selection_vector(:,2);
+        ci_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
         
     else % cumulative approach
         %Set output filename
@@ -91,6 +97,12 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
         % [ZTG Updated 2018-11-27]
         selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
         selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
+        
+        ci_select{1} = find(selection_vector(:,1));
+        ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
+
+        ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+        ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
     end
 
     %% Confidence Interval variables
@@ -102,10 +114,6 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
 %     ci_select{3} = find(selection_vector(:,3) - selection_vector(:,2));
 %     ci_select{4} = find(selection_vector(:,4) - selection_vector(:,3));
     
-    ci_select = cell(2,1);
-    ci_select{1} = find(selection_vector(:,1));
-    ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
-    
     % CI Input filenames
     % Note: for calculating confidence intervals, will only use the oed-cvx
     % selected inputs for that respective group
@@ -114,9 +122,4 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
 %     ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
 %     ci_input_vector{3} = strcat(input_folder,'V_sim_G3.mat');
 %     ci_input_vector{4} = strcat(input_folder,'V_sim_G4.mat');
-
-    ci_input_vector = cell(2,1);
-    ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
-    ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
-
 end

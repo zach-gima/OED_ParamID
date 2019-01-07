@@ -75,7 +75,8 @@ theta_0 = Nominal_param;
 input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
-%input_folder = strcat('InputLibrary/ValidationCycles/');
+% input_folder = strcat('InputLibrary/ValidationCycles/');
+
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
 % output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');

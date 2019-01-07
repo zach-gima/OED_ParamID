@@ -114,7 +114,6 @@ num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
 
 % Perturb parameters of interest all at the beginning
 % perturb_index = find(selection_vector(:,1)); % G1
-selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
 perturb_index = find(selection_vector(:,2)); %G1 & G2
 
 perturb_factor = 1.5;

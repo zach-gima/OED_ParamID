@@ -156,10 +156,10 @@ num_exp = length(sens_files);
 %%% sensitivities. find_admissable_experiment_sets then saves the results
 %%% into exp_info.mat, which can be loaded from thereon.
 
-[STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
+% [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
 
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 
 if num_exp ~= length(sens)
     error('Check that senspath and exp_info.mat file are consistent i.e. have same # of experiments')

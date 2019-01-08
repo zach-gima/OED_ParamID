@@ -32,15 +32,19 @@ ctrl_lambda = [1e-2;1e-2];
 %%% Number of parameter groups
 num_groups = 2;
 
-%%%%%%%%%%%%%%%   ParamID Approach (Uncomment to select)   %%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
 
-% (1) Cumulative
-approach = {'G1_'; 'G2G1_'};
-init_iter = 1; % start w/ G1 params
-
-% (2) All-at-once (Use for testing with true initial parameters)
-% approach = {'';'all_'};
+% Baseline A: Full Parameter Set (1 Group)
+% baseline = {'full'};
 % init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
+
+% Baseline B: Collinearity Only
+% baseline = {'collinearity'};
+% init_iter = num_groups;
+
+% Baseline C: Collinearity + Sensitivity (Cumulative)
+baseline = {'OED'};
+init_iter = 1; % start w/ G1 params
 
 
 %%%%%%%%%%%%%%%   Parameter Initial Conditions (Uncomment to select)   %%%%%%%%%%%%%%%
@@ -80,14 +84,14 @@ input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
 % output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
-% output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
+% output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 
 mkdir(output_folder); %create new subfolder with current date in output_folder
 % output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
 
-%%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID approach and I.C.'s 
-[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(approach,init_cond,input_folder,output_folder);
+%%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
+[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,input_folder,output_folder);
 
 %% Display Simulation Info
 
@@ -182,7 +186,7 @@ end
 
 %% Call ParamID function
 
-% Note: cannot parallelize this for loop, because cumulative approach
+% Note: cannot parallelize this for loop, because cumulative baseline
 % depends on G1 being ID'ed first, then G2 and so on
 % Note: To use for Savio, probably need a separate main script with the
 % Savio header
@@ -198,7 +202,7 @@ theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting 
 
 try
     for jj = init_iter:num_groups
-        fprintf('Beginning Stage %s \n\n\n',approach{jj});
+        fprintf('Beginning Stage %s \n\n\n',baseline{jj});
         %%%%%%%% Debug %%%%%%%%%%%
 %         filename_input_vector{1} = strcat(input_folder,'V_sim_debug_capiaglia'); %debugging input (much shorter)
 %         selection_vector(:,1) = selection_vector(:,end); %selection vector = all params; use for debugging with true initial parms

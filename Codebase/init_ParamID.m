@@ -35,7 +35,7 @@
     %   () 24 : E.kn        => p.E.kn
     %   () 25 : E.kp        => p.E.kp
     
-function [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(approach,init_cond,input_folder,output_folder)
+function [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,input_folder,output_folder)
     
     %% ParamID variables
 %     % Selection vector (Year 1)
@@ -77,20 +77,44 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     ci_select = cell(2,1);
     ci_input_vector = cell(2,1);
 
-    if strcmp(approach{2},'all_') == 1
+    % Baseline A: Full Parameter Set (1 Group)
+    if strcmp(baseline{1},'full') == 1 
         %Set output filename
-        filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
         
         %Set selection vector
-        selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; %G1
+        selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
+        
+        ci_select{2} = selection_vector(:,2);
+        ci_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
+      
+    % Baseline B: Collinearity Only (1 Group)
+    elseif strcmp(baseline{1},'collinearity') == 1
+        filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
+
+        %Set selection vector
+        selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;0;1;1;0;1;1;0;0;1;0;0;1;1;1;1;0];
         
         ci_select{2} = selection_vector(:,2);
         ci_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
         
-    else % cumulative approach
+    else % Baseline C: Collinearity + Sensitivity (2 Groups, can write for 1 as well)
+        
+        % Uncomment grouping approach you want to use
+        %%%%%%%%%%%%%%%%%% All at once %%%%%%%%%%%%%%%%%% 
+%         filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
+% 
+%         % Selection Vector
+%         selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % all together
+%             
+%         ci_select{2} = selection_vector(:,2);
+%         ci_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
+        
+       
+        %%%%%%%%%%%%%%%%%% Cumulative %%%%%%%%%%%%%%%%%% 
         %Set output filename
-        filename_output_vector{1} = strcat(output_folder,approach{1},init_cond,'.mat');
-        filename_output_vector{2} = strcat(output_folder,approach{2},init_cond,'.mat');
+        filename_output_vector{1} = strcat(output_folder,baseline{1},init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
         
         % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
         % Starting off just trying 2 groups of params

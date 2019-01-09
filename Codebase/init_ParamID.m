@@ -80,7 +80,7 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
     % Baseline A: Full Parameter Set (1 Group)
     if strcmp(baseline{1},'full') == 1 
         %Set output filename
-        filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{1},init_cond,'.mat');
         
         %Set selection vector
         selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
@@ -90,7 +90,7 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
       
     % Baseline B: Collinearity Only (1 Group)
     elseif strcmp(baseline{1},'collinearity') == 1
-        filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{1},init_cond,'.mat');
 
         %Set selection vector
         selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;0;1;1;0;1;1;0;0;1;0;0;1;1;1;1;0];
@@ -114,7 +114,7 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
         %%%%%%%%%%%%%%%%%% Cumulative %%%%%%%%%%%%%%%%%% 
         %Set output filename
         filename_output_vector{1} = strcat(output_folder,baseline{1},init_cond,'.mat');
-        filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{1},init_cond,'.mat');
         
         % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
         % Starting off just trying 2 groups of params

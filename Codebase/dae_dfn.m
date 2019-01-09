@@ -64,7 +64,7 @@ function [f, g, L, f_out, g_out, alg_out, param_out] = dae_dfn(x,z,Cur,p)
     jp = z(2*Nnp+Nx+2+Nn+1 : end);
 
 
-    %% Temperature dependent parameters
+    %% Temperature dependent parameters (Arrhenius)
     % Adjust Temperature Dependent Parameters, based on present temperaure
 
     p.D_s_n = p.D_s_n0 * exp(p.E.Dsn/p.R*(1/p.T_ref - 1/T1));

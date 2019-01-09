@@ -35,16 +35,16 @@ num_groups = 2;
 %%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
 
 % Baseline A: Full Parameter Set (1 Group)
-% baseline = {'full'};
-% init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
+baseline = {'full'};
+init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
 
 % Baseline B: Collinearity Only
 % baseline = {'collinearity'};
 % init_iter = num_groups;
 
 % Baseline C: Collinearity + Sensitivity (Cumulative)
-baseline = {'OED'};
-init_iter = 1; % start w/ G1 params
+% baseline = {'OED'};
+% init_iter = 1; % start w/ G1 params
 
 
 %%%%%%%%%%%%%%%   Parameter Initial Conditions (Uncomment to select)   %%%%%%%%%%%%%%%
@@ -76,16 +76,16 @@ theta_0 = Nominal_param;
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
-% input_folder = strcat('InputLibrary/ValidationCycles/');
+input_folder = strcat('InputLibrary/ValidationCycles/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
 % output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
-output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
+% output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 
 mkdir(output_folder); %create new subfolder with current date in output_folder
 % output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
@@ -101,7 +101,8 @@ error_filename = strcat(output_folder,'sim_log.txt');
 diary(error_filename)
 
 datetime_initial
-fprintf('Initial Conditions: %s \n \n',init_cond);
+fprintf('Initial Conditions: %s \n',init_cond);
+fprintf('Baseline: %s \n \n',baseline{1});
 disp('Levenberg-Marquardt Params')
 fprintf('Initial Lambda: %5.2e \n',ctrl_lambda);
 fprintf('Param Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(1));
@@ -121,7 +122,7 @@ num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
 % perturb_index = find(selection_vector(:,1)); % G1
 perturb_index = find(selection_vector(:,2)); %G1 & G2
 
-perturb_factor = 1.5;
+perturb_factor = 1.05;
 theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
 
 % Display Analysis Info
@@ -202,7 +203,7 @@ theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting 
 
 try
     for jj = init_iter:num_groups
-        fprintf('Beginning Stage %s \n\n\n',baseline{jj});
+        fprintf('Beginning Stage %s \n\n\n',baseline{1});
         %%%%%%%% Debug %%%%%%%%%%%
 %         filename_input_vector{1} = strcat(input_folder,'V_sim_debug_capiaglia'); %debugging input (much shorter)
 %         selection_vector(:,1) = selection_vector(:,end); %selection vector = all params; use for debugging with true initial parms
@@ -312,7 +313,7 @@ try
     end
     
     %% Plot Results: plot figure of truth and estimated values w/ C.I.'s
-    Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states,selection_vector)    
+%     Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states,selection_vector)    
 
 catch e %e is an MException struct
     % An error will put you here.

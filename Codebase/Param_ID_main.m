@@ -7,8 +7,8 @@ close all
 
 datetime_initial = datetime('now','TimeZone','America/Los_Angeles');
 
-%Load CasADi
-% addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows')
+%Load CasADi for Savio
+% addpath('/global/home/users/ztakeo/modules/casadi-matlab');
 % import casadi.*
 
 %% User Input -- could also setup to just run both approaches and all I.C. variants;
@@ -80,12 +80,14 @@ theta_0 = Nominal_param;
 % input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
 input_folder = strcat('InputLibrary/ValidationCycles/');
+% input_folder = strcat('InputLibrary/Experimental/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
 % output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
+% output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path
 
 mkdir(output_folder); %create new subfolder with current date in output_folder
 % output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder

@@ -15,12 +15,12 @@
 
 % T_amb expected in Celsius
 
-function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag) % [ZTG change] removed Rc for no model-to-model comparison
+function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag,Rc) % [ZTG change] removed Rc for no model-to-model comparison
 
 %     addpath('/Users/ztakeo/Documents/MATLAB/casadi') % Mac Laptop
 %     addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows') % HPC-1
 %     addpath('C:/Users/zgima/Documents/MATLAB/casadi_windows') % HPC-2
-
+%     addpath('/global/home/users/ztakeo/modules/casadi-matlab');    % For Savio
     import casadi.*
 
     %% Load Electrochemical Model Parameters
@@ -162,7 +162,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     V0 = Voltage_exp(1);
     t = 1:length(Time_exp);
     I = -Current_exp/p.Area;
-    % p.R_c = Rc; % [ZTG change] removed for no model-to-model comparison
+    p.R_c = Rc; % [ZTG change] removed for no model-to-model comparison
     NT = length(t);
 
     %% (DFN Code Copy) Initial Conditions & Preallocation

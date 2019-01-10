@@ -50,7 +50,8 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     %%% Only important for matching IR drop between experimental data
     %%% and simulation. In which case, use Rc for each experiment
     % Rc = 0.0027; 
-
+    Rc = Inputs.Rc;
+    
     %% Q (Covariance value)
     % [ZTG Change]
     % For Model-to-Model, set Q = 1
@@ -97,7 +98,11 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     % Simulate DFN and Calculate Sensitivties for initial parameter values
     SensFlag = 1;
     parfor idx = 1:num_inputs
-        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
+        % W/o Rc
+%         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
+
+        %W/ Rc
+        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag,Rc{idx});
     end
 
     V_LM = cell2mat(V_LM_CELL);
@@ -232,7 +237,11 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
             SensFlag = 0;
             parfor idx = 1:num_inputs
-                [Y_SIM_CELL{idx},~] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0,SensFlag);
+                % W/o Rc
+%                 [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
+
+                %W/ Rc
+                [Y_SIM_CELL{idx},~] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0,SensFlag,Rc{idx});
             end
 
             y_sim = cell2mat(Y_SIM_CELL);
@@ -374,7 +383,11 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
                     SensFlag = 1;
                     parfor idx = 1:num_inputs
-                        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0, SensFlag);
+                        % W/o Rc
+%                          [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
+
+                        %W/ Rc
+                        [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0, SensFlag,Rc{idx});
                     end
                     y_sim = cell2mat(V_LM_CELL);
                     normalized_sens_bar = origin_to_norm('sens',park0,bounds,selection_vector);

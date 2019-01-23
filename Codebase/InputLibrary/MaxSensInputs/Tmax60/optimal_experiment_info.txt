@@ -1,11 +1,3 @@
-Exp. 1381 has Tamb = 0, V_0 = 3.948, SOC_0 = 0.80 
-Exp. 21 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
-Exp. 221 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
-Exp. 239 has Tamb = 0, V_0 = 3.769, SOC_0 = 0.60 
-Exp. 245 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
-Exp. 250 has Tamb = 0, V_0 = 3.456, SOC_0 = 0.20 
-Exp. 580 has Tamb = 0, V_0 = 3.456, SOC_0 = 0.20 
-Exp. 638 has Tamb = 0, V_0 = 3.598, SOC_0 = 0.40 
-Exp. 867 has Tamb = 0, V_0 = 3.769, SOC_0 = 0.60 
-Exp. 875 has Tamb = 0, V_0 = 3.948, SOC_0 = 0.80 
-Exp. 930 has Tamb = 20, V_0 = 3.948, SOC_0 = 0.80 
+version https://git-lfs.github.com/spec/v1
+oid sha256:44236c089290175fead981802591139dc9cd010d2f3b0b5e934b291372fd6593
+size 550

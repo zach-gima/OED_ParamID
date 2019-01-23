@@ -51,11 +51,22 @@ function [g] = param_table_plotter_ZTG(mode,selection_vector,ci95,Final_param,th
     % clustering and sens. threshold analysis
     %%%Ordered from group2->group1 in terms of sens. magnitude i.e. last
     %%%param in cell is highest sens.
-    params_ID = {'$E.k_n$','$E.D_s^-$','$\varepsilon_e^{sep}$','$c_{e_0}$','$\varepsilon_e^+$','$E.D_s^+$','$R_f^{^{\_}}$',...
-            '$\frac{d \ln f_{c/a}}{d \ln c_e}(\cdot)$','$D_s^{^{\_}}$','$D_e(\cdot)$','$D_s^+$','$R_s^-$','$R_s^+$'};
+    
+    if Np == 13
+        params_ID = {'$E.k_n$','$E.D_s^-$','$\varepsilon_e^{sep}$','$c_{e_0}$','$\varepsilon_e^+$','$E.D_s^+$','$R_f^{^{\_}}$',...
+        '$\frac{d \ln f_{c/a}}{d \ln c_e}(\cdot)$','$D_s^{^{\_}}$','$D_e(\cdot)$','$D_s^+$','$R_s^-$','$R_s^+$'};
+    elseif Np == 16
+        params_ID = {'$t_{c}^{0}$','$\sigma^{+}$','$\sigma^{^{\_}}$','$E.k_n$','$E.D_s^-$','$\varepsilon_e^{sep}$','$c_{e_0}$','$\varepsilon_e^+$','$E.D_s^+$','$R_f^{^{\_}}$',...
+        '$\frac{d \ln f_{c/a}}{d \ln c_e}(\cdot)$','$D_s^{^{\_}}$','$D_e(\cdot)$','$D_s^+$','$R_s^-$','$R_s^+$'};
+    else
+        params_ID = {'$t_{c}^{0}$','$E.k_p$','$\sigma^{+}$','$\sigma^{^{\_}}$','$E.k_n$','$\varepsilon_e^{sep}$','$k^+$','$E.D_s^-$',...
+        '$\kappa(\cdot)$','$c_{e_0}$','$R_f^+$','$\varepsilon_e^+$','$k^{^{\_}}$','$E.D_s^+$','$R_f^{^{\_}}$',...
+        '$\frac{d \ln f_{c/a}}{d \ln c_e}(\cdot)$','$D_s^{^{\_}}$','$\varepsilon_e^{^{\_}}$','$D_e(\cdot)$','$D_s^+$','$R_s^-$','$R_s^+$'};
+    end
+    
+%     params_ID = params_full(sel_k);
     
     params_idx_from_original = zeros(Np,1);
-    
     for ii = 1:Np
         params_idx_from_original(ii) = find(strcmp(params_ID{ii},params_full) == 1);
     end

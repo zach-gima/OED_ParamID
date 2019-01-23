@@ -1,0 +1,2 @@
+Codebase/InputLibrary/ filter=lfs diff=lfs merge=lfs -text
+Codebase/InputLibrary/** filter=lfs diff=lfs merge=lfs -text

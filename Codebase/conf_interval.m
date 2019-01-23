@@ -12,6 +12,15 @@ function [J_LM,ci95,sigma_y,covar_p,alg_states] = conf_interval(p, Inputs, SensS
     y_dat = cell2mat(Voltage_exp); % Truth/experimental data
     total_NT  = size(y_dat,1);
     
+    % In experimental ID, Rc needs to be identified for each experiment
+    % (Rc_tune) and the Rc value must be attached to each profile
+    if isfield(Inputs,'Rc')
+        Rc = Inputs.Rc;
+    else %M2M case
+        Rc = cell(length(Current_exp),1);
+        Rc(:,1) = {p.R_c}; % For M2M case, just use nominal Rc value 
+    end
+    
     % Calculate sensitivity at param_opt
     V_LM_CELL = cell(num_inputs,1);
     S_LM_CELL = cell(num_inputs,1);

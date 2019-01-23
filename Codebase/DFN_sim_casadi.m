@@ -162,7 +162,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     V0 = Voltage_exp(1);
     t = 1:length(Time_exp);
     I = -Current_exp/p.Area;
-    p.R_c = Rc; % [ZTG change] removed for no model-to-model comparison
+%     p.R_c = Rc; % [ZTG change] removed for no model-to-model comparison
     NT = length(t);
 
     %% (DFN Code Copy) Initial Conditions & Preallocation

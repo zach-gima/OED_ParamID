@@ -50,7 +50,15 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     %%% Only important for matching IR drop between experimental data
     %%% and simulation. In which case, use Rc for each experiment
     % Rc = 0.0027; 
-    Rc = Inputs.Rc;
+    
+    % In experimental ID, Rc needs to be identified for each experiment
+    % (Rc_tune) and the Rc value must be attached to each profile
+    if isfield(Inputs,'Rc')
+        Rc = Inputs.Rc;
+    else %M2M case
+        Rc = cell(length(Current_exp),1);
+        Rc(:,1) = {p.R_c}; % For M2M case, just use nominal Rc value 
+    end
     
     %% Q (Covariance value)
     % [ZTG Change]
@@ -97,7 +105,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
     % Simulate DFN and Calculate Sensitivties for initial parameter values
     SensFlag = 1;
-    parfor idx = 1:num_inputs
+    for idx = 1:num_inputs
         % W/o Rc
 %         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
 

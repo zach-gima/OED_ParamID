@@ -20,6 +20,14 @@ clearvars
 close all
 clc
 
+%% Load Input
+load('InputLibrary/ValidationCycles/ModCDUDDSx2.mat')
+T_amb_sim = 25;
+V_LM_CELL = Voltage_exp;
+
+Num_inputs = length(Current_exp);
+exp_num = 'UDDS_val';
+
 %% Load Parameters
 run param/params_NCA % loads p struct
 
@@ -53,46 +61,46 @@ run param/params_NCA % loads p struct
 
 %%%%% For Generating Validation Cycle Voltage Response for model-to-model
 %%%%% comparison
-run param/params_nominal % load true param values vector: truth_param
-theta_0 = Nominal_param;
-
-% Use nominal param values
-
-% Overwrite the nominal values in the param struct w/ true values
-p.D_s_n0 = theta_0(1); %[G2]
-p.D_s_p0 = theta_0(2); %[G2]
-p.R_s_n = theta_0(3); %[G1]
-p.R_s_p = theta_0(4); %[G1]
-% p.epsilon_s_n = theta_0(5); %  Equil. Struct
-% p.epsilon_s_p = theta_0(6); %  Equil. Struct
-p.sig_n = theta_0(7);
-p.sig_p = theta_0(8);
-p.ElecFactorD = theta_0(9); %[G2]
-p.epsilon_e_n = theta_0(10); %[G2]
-p.epsilon_e_s = theta_0(11);
-p.epsilon_e_p = theta_0(12);
-p.ElecFactorK = theta_0(13); %[G2]
-p.t_plus = theta_0(14);
-p.ElecFactorDA = theta_0(15); %[G2]
-p.k_n0 = theta_0(16);
-p.k_p0 = theta_0(17);
-p.R_f_n = theta_0(18);
-p.R_f_p = theta_0(19);
-% p.n_Li_s = theta_0(20); %  Equil. Struct
-p.c_e0 = theta_0(21);
-p.E.Dsn = theta_0(22);
-p.E.Dsp = theta_0(23);
-p.E.kn = theta_0(24);
-p.E.kp = theta_0(25);
-
-%%% Update Dependencies
-% Specific interfacial surface area
-p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
-p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
-
-% make element to caclulate phi_{s} by Saehong Park 
-p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
-p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
+run param/params_expID % load true param values vector: truth_param
+theta_0 = expID_param;
+% 
+% % Use nominal param values
+% 
+% % Overwrite the nominal values in the param struct w/ true values
+% p.D_s_n0 = theta_0(1); %[G2]
+% p.D_s_p0 = theta_0(2); %[G2]
+% p.R_s_n = theta_0(3); %[G1]
+% p.R_s_p = theta_0(4); %[G1]
+% % p.epsilon_s_n = theta_0(5); %  Equil. Struct
+% % p.epsilon_s_p = theta_0(6); %  Equil. Struct
+% p.sig_n = theta_0(7);
+% p.sig_p = theta_0(8);
+% p.ElecFactorD = theta_0(9); %[G2]
+% p.epsilon_e_n = theta_0(10); %[G2]
+% p.epsilon_e_s = theta_0(11);
+% p.epsilon_e_p = theta_0(12);
+% p.ElecFactorK = theta_0(13); %[G2]
+% p.t_plus = theta_0(14);
+% p.ElecFactorDA = theta_0(15); %[G2]
+% p.k_n0 = theta_0(16);
+% p.k_p0 = theta_0(17);
+% p.R_f_n = theta_0(18);
+% p.R_f_p = theta_0(19);
+% % p.n_Li_s = theta_0(20); %  Equil. Struct
+% p.c_e0 = theta_0(21);
+% p.E.Dsn = theta_0(22);
+% p.E.Dsp = theta_0(23);
+% p.E.kn = theta_0(24);
+% p.E.kp = theta_0(25);
+% 
+% %%% Update Dependencies
+% % Specific interfacial surface area
+% p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
+% p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
+% 
+% % make element to caclulate phi_{s} by Saehong Park 
+% p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
+% p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
 
 %% Load Inputs
 %%% NO NEED TO LOAD/INCLUDE RC VALUES FOR M2M COMPARISON; ONLY NECESSARY IN
@@ -234,58 +242,62 @@ p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler 
 %% Setup for Validation Cycles
 selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; %All, Year 2
 SensFlag = 0; %Turn sensitivity calculation off or on
-
-%%%%Validation Cycles
-Num_inputs = 16;
-exp_num = {'C1';'C2';'C3';'C4';'C5';'C6';'C7';'C8';'D1';'D2';'D3';'D4';'D5';'D6';'D7';'D8'};
-Current_exp_cell = cell(Num_inputs,1);
-Time_exp_cell = cell(Num_inputs,1);
-Voltage_exp_cell = cell(Num_inputs,1);
-T_amb_sim = cell(Num_inputs,1);
-
-for ii = 1:Num_inputs
-   input_filename = strcat('InputLibrary/ValidationCycles/Unformatted/',exp_num{ii});
-   load(input_filename);
-   Current_exp_cell{ii} = Current_exp;
-   Time_exp_cell{ii} = Time_exp;
-   Voltage_exp_cell{ii} =  Voltage_exp; %for getting V0
-   T_amb_sim{ii} = 25;
-end
-
-%Rename
-Current_exp = Current_exp_cell;
-Time_exp = Time_exp_cell;
-Voltage_exp = Voltage_exp_cell;
-
-clear Current_exp_cell Time_exp_cell Voltage_exp_cell
+% 
+% %%%%Validation Cycles
+% Num_inputs = 16;
+% exp_num = {'C1';'C2';'C3';'C4';'C5';'C6';'C7';'C8';'D1';'D2';'D3';'D4';'D5';'D6';'D7';'D8'};
+% Current_exp_cell = cell(Num_inputs,1);
+% Time_exp_cell = cell(Num_inputs,1);
+% Voltage_exp_cell = cell(Num_inputs,1);
+% T_amb_sim = cell(Num_inputs,1);
+% 
+% for ii = 1:Num_inputs
+%    input_filename = strcat('InputLibrary/ValidationCycles/Unformatted/',exp_num{ii});
+%    load(input_filename);
+%    Current_exp_cell{ii} = Current_exp;
+%    Time_exp_cell{ii} = Time_exp;
+%    Voltage_exp_cell{ii} =  Voltage_exp; %for getting V0
+%    T_amb_sim{ii} = 25;
+% end
+% 
+% %Rename
+% Current_exp = Current_exp_cell;
+% Time_exp = Time_exp_cell;
+% Voltage_exp = Voltage_exp_cell;
+% 
+% clear Current_exp_cell Time_exp_cell Voltage_exp_cell
 
 %% Call DFN function to simulate voltage (& sensitivity)
-V_LM_CELL = cell(Num_inputs,1);
-alg_states = cell(Num_inputs,1);
-cssn_sim = cell(Num_inputs,1);
-cssp_sim = cell(Num_inputs,1);
-etan_sim = cell(Num_inputs,1);
-etap_sim = cell(Num_inputs,1);
-T1_sim = cell(Num_inputs,1);
-T2_sim = cell(Num_inputs,1);
+% V_LM_CELL_sim = cell(Num_inputs,1);
+% alg_states = cell(Num_inputs,1);
+% cssn_sim = cell(Num_inputs,1);
+% cssp_sim = cell(Num_inputs,1);
+% etan_sim = cell(Num_inputs,1);
+% etap_sim = cell(Num_inputs,1);
+% T1_sim = cell(Num_inputs,1);
+% T2_sim = cell(Num_inputs,1);
 
 SensSelec = selection_vector;
 sel_k = find(SensSelec);
 Selected_params = theta_0(sel_k);
+Rc = p.R_c;
 
-parfor idx = 1:Num_inputs
+[V_LM_CELL_sim,~] = DFN_sim_casadi(p, exp_num, Current_exp, Time_exp, V_LM_CELL, T_amb_sim, SensSelec, Selected_params, SensFlag,Rc); % SensFlag == 0
+
+%parfor idx = 1:Num_inputs
+for idx = 1:Num_inputs
 %     V_LM_CELL{idx} =  DFN_sim_noRc_ZTG(Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params); %, Rc_exp{idx});
 %    V_true{idx} = DFN_sim_noRc(Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params);
 
-   [V_LM_CELL{idx},alg_states{idx}] = DFN_sim_casadi(p, exp_num{idx}, Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb_sim{idx}, SensSelec, Selected_params, SensFlag); % SensFlag == 0
+   [V_LM_CELL_sim{idx},~] = DFN_sim_casadi(p, exp_num{idx}, Current_exp{idx}, Time_exp{idx}, V_LM_CELL{idx}, T_amb_sim{idx}, SensSelec, Selected_params, SensFlag,Rc{idx}); % SensFlag == 0
    
    % Parse specific algebraic states of interest
-   cssn_sim{idx} = alg_states{idx}.cssn_sim;
-   cssp_sim{idx} = alg_states{idx}.cssp_sim;
-   etan_sim{idx} = alg_states{idx}.etan_sim;
-   etap_sim{idx} = alg_states{idx}.etap_sim;
-   T1_sim{idx} = alg_states{idx}.T1_sim;
-   T2_sim{idx} = alg_states{idx}.T2_sim;
+%    cssn_sim{idx} = alg_states{idx}.cssn_sim;
+%    cssp_sim{idx} = alg_states{idx}.cssp_sim;
+%    etan_sim{idx} = alg_states{idx}.etan_sim;
+%    etap_sim{idx} = alg_states{idx}.etap_sim;
+%    T1_sim{idx} = alg_states{idx}.T1_sim;
+%    T2_sim{idx} = alg_states{idx}.T2_sim;
 
    
 %     [V_LM_CELL{idx}, S_LM_CASADI{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, SensSelec, Selected_params,SensFlag);
@@ -297,8 +309,9 @@ end
 % alg_states.cssp_sim = cssp_sim;
 % alg_states.etan_sim = etan_sim;
 % alg_states.etap_sim = etap_sim;
+save('Optimal_exp_check.mat','V_LM_CELL_sim','Current_exp','Time_exp','V_LM_CELL','exp_num');
 
-save('V_sim_G2G1.mat','exp_num','Time_exp','T_amb_sim','T1_sim','T2_sim','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim');
+% save('V_sim_G2G1.mat','exp_num','Time_exp','T_amb_sim','T1_sim','T2_sim','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim');
 
 % V_LM_CELL = cell2mat(V_LM_CELL);
 % S_LM_CASADI = cell2mat(S_LM_CASADI);

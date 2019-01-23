@@ -35,16 +35,16 @@ num_groups = 2;
 %%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
 
 % Baseline A: Full Parameter Set (1 Group)
-baseline = {'full'};
-init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
+% baseline = {'full_'};
+% init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
 
 % Baseline B: Collinearity Only
-% baseline = {'collinearity'};
+% baseline = {'collinearity_'};
 % init_iter = num_groups;
 
 % Baseline C: Collinearity + Sensitivity (Cumulative)
-% baseline = {'OED'};
-% init_iter = 1; % start w/ G1 params
+baseline = {'OED_'};
+init_iter = 1; % start w/ G1 params
 
 
 %%%%%%%%%%%%%%%   Parameter Initial Conditions (Uncomment to select)   %%%%%%%%%%%%%%%
@@ -76,15 +76,15 @@ theta_0 = Nominal_param;
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-% input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
+input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
-input_folder = strcat('InputLibrary/ValidationCycles/');
+% input_folder = strcat('InputLibrary/ValidationCycles/');
 % input_folder = strcat('InputLibrary/Experimental/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 % output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path

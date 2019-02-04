@@ -7,10 +7,6 @@ close all
 
 datetime_initial = datetime('now','TimeZone','America/Los_Angeles');
 
-%Load CasADi for Savio
-% addpath('/global/home/users/ztakeo/modules/casadi-matlab');
-% import casadi.*
-
 %% User Input -- could also setup to just run both approaches and all I.C. variants;
 
 % Load Nominal Parameter Set, Bounds, & True params
@@ -19,33 +15,33 @@ run param/params_bounds % loads bounds struct (has fields bounds.min and bounds.
 run param/params_truth % loads truth_param array
 
 % Set Levenberg-Marquardt Conditions
-param_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called StepTol)
+param_exit_thresh = 1e-3; % 1e-6 default values used in matlab (called StepTol)
 chi_sq_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called FuncTol)
+chi_sq_Abs_exit_thresh = 1e-4; % Absolute cost function tolerance (Func Absolute Tol)
 
-LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh];
+LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh, chi_sq_Abs_exit_thresh];
 LM_options.maxIter = 20;
 
 % ZTG Note: Tends to be instability when starting group 2; i.e. big parameter estimates cause CasADi errors; try being more conservative initially when starting group 2 
 % LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
 ctrl_lambda = [1e-2;1e-2];
 
-%%% Number of parameter groups
-num_groups = 2;
-
 %%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
-
-% Baseline A: Full Parameter Set (1 Group)
+% % Baseline A: Full Parameter Set (1 Group)
 % baseline = {'full_'};
-% init_iter = num_groups; % identify all parameters together, so just 1 iteration needed 
+% num_groups = 1; % Number of parameter groups
 
-% Baseline B: Collinearity Only
+% % Baseline B: Collinearity Only (1 Group)
 % baseline = {'collinearity_'};
-% init_iter = num_groups;
+% num_groups = 1; % Number of parameter groups
 
-% Baseline C: Collinearity + Sensitivity (Cumulative)
+% Baseline C: Collinearity + Sensitivity (2 Groups)
 baseline = {'OED_'};
-init_iter = 1; % start w/ G1 params
+num_groups = 2; % Number of parameter groups
 
+% % Experimental ParamID (Pre-Q Inclusion)
+% baseline = {'OED_EXP_'};
+% num_groups = 3; % Number of parameter groups G1(easy) G1&G2(easy) G1&G2(all)
 
 %%%%%%%%%%%%%%%   Parameter Initial Conditions (Uncomment to select)   %%%%%%%%%%%%%%%
 % (1) Theta_0 = True parameter values ID'ed by SHP in Bosch Year 1 (NCA)
@@ -76,11 +72,14 @@ theta_0 = Nominal_param;
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-input_folder = strcat('InputLibrary/MaxSensInputs/Tmax60/');
-% input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
-% input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
+input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/BaselineA/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/BaselineB/');
 % input_folder = strcat('InputLibrary/ValidationCycles/');
 % input_folder = strcat('InputLibrary/Experimental/');
+
+% input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
@@ -93,7 +92,7 @@ mkdir(output_folder); %create new subfolder with current date in output_folder
 % output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
-[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,input_folder,output_folder);
+[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
 
 %% Display Simulation Info
 
@@ -108,7 +107,9 @@ fprintf('Baseline: %s \n \n',baseline{1});
 disp('Levenberg-Marquardt Params')
 fprintf('Initial Lambda: %5.2e \n',ctrl_lambda);
 fprintf('Param Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(1));
-fprintf('Cost Function Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(2));
+fprintf('Cost Function Rel. Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(2));
+fprintf('Cost Function Abs. Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(3));
+
 fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
 
 %% Perturbation Analysis %%%%%%%%%
@@ -122,7 +123,7 @@ num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
 
 % Perturb parameters of interest all at the beginning
 % perturb_index = find(selection_vector(:,1)); % G1
-perturb_index = find(selection_vector(:,2)); %G1 & G2
+perturb_index = find(selection_vector(:,end)); %G1 & G2
 
 perturb_factor = 1.05;
 theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
@@ -175,13 +176,15 @@ for ii = 1:length(theta_0)
     
     % Initial Value > Upper Bound
     if theta_0(ii) > bounds.max(ii)
-        bounds.max(ii) = theta_0(ii);
+        theta_0(ii) = bounds.max(ii); % set param value to bound
+%         bounds.min(ii) = theta_0(ii); % set bound to param value
         fprintf('Parameter %i perturbed past upper bound \n', ii);
     end
     
     % Initial Value < Lower Bound
     if theta_0(ii) < bounds.min(ii)
-        bounds.min(ii) = theta_0(ii);
+        theta_0(ii) = bounds.min(ii); % set param value to bound
+%         bounds.min(ii) = theta_0(ii); % set bound to param value
         fprintf('Parameter %i perturbed past lower bound \n', ii);
     end
     
@@ -197,19 +200,14 @@ end
 %initialize vectors for storing metrics and other data
 datetime_paramID = cell(num_groups,1);
 t_paramID = 0;
-% ci95_full = zeros(21,1); %vector for storing confidence interval for params
 ci95_full = zeros(25,1); %vector for storing confidence interval for params
 rmse_final = [];
 iter_history = [];
 theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting purposes (param_table_plotter)
 
 try
-    for jj = init_iter:num_groups
-        fprintf('Beginning Stage %s \n\n\n',baseline{1});
-        %%%%%%%% Debug %%%%%%%%%%%
-%         filename_input_vector{1} = strcat(input_folder,'V_sim_debug_capiaglia'); %debugging input (much shorter)
-%         selection_vector(:,1) = selection_vector(:,end); %selection vector = all params; use for debugging with true initial parms
-        %%%%%%%%% Debug %%%%%%%%%%%%%%
+    for jj = 1:num_groups
+        fprintf('Beginning Baseline %s, Group %s \n\n\n',baseline{1}(1:end-1),num2str(jj));
         
         %% Change lambda depending on the group being identified (see note earlier about why)
         LM_options.ctrl_lambda = ctrl_lambda(jj);
@@ -261,10 +259,6 @@ try
         matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);
         
      	%% Calculate Confidence Intervals at the last stage and Plot results
-        %%%% Debug
-        % Load park0 for group 4 if you had to exit manually
-%         load('C:\Users\Zach\Documents\GitHub\DFN_CasADi\3_Journal_JPS\m2m_comp\ID_results\April 7\park0_G4.mat')
-        %%%% Debug
         disp('Calculate confidence intervals for identified parameter values \n')
 
         % Calculate local sensitivity and final RMSE
@@ -309,7 +303,8 @@ try
         % Export Results
         save(filename_output,'paramID_out','rmse_final','ci95_full','sigma_y',...
         'covar_p','datetime_initial','datetime_final','t_paramID','t_ci',...
-        'iter_history','output_folder','sel_k','selection_vector','truth_param','theta_0_true','LM_options','J_LM','bounds','alg_states');
+        'iter_history','output_folder','sel_k','selection_vector','truth_param',...
+        'theta_0_true','LM_options','J_LM','bounds','alg_states');
 
         matlabmail('ztakeo@berkeley.edu','Conf. Interval complete','',[]);
     end

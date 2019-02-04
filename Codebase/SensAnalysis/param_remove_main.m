@@ -18,8 +18,8 @@ close all
 clc
 
 %% Set Group Sizes
-group1_size = 6;
-group2_size = 7;
+group1_size = 16;
+group2_size = 0;
 
 %% define threshold
 threshold = 0.7;
@@ -36,7 +36,13 @@ params_reduced = params; % for tracking parameters remaining as some are elimina
 
 %% Load Inputs & Parameters
 % Set output folder
-output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/Tmax60/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/Tmax60/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/BaselineA/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/BaselineB/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/Tmax60_trim/';
+% output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/BaselineA_trim/';
+output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/SensAnalysis/BaselineB_trim/';
+
 % output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/Perturb/SensAnalysis/minus50/';
 % output_folder = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/Plots/Perturb/SensAnalysis/plus50/';
 
@@ -53,7 +59,14 @@ senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
 
 % Set output filename
 % output_filename = 'max_sens_experiments_Tmax45.mat';
-output_filename = 'max_sens_experiments_Tmax60.mat';
+% output_filename = 'max_sens_experiments_Tmax60.mat';
+% output_filename = 'max_sens_experiments_BaselineA.mat';
+% output_filename = 'max_sens_experiments_BaselineB.mat';
+
+% output_filename = 'max_sens_experiments_Tmax60_trim.mat';
+% output_filename = 'max_sens_experiments_BaselineA_trim.mat';
+output_filename = 'max_sens_experiments_BaselineB_trim.mat';
+
 % output_filename = 'max_sens_experiments_minus50.mat';
 % output_filename = 'max_sens_experiments_plus50.mat';
 
@@ -61,9 +74,44 @@ output_filename = 'max_sens_experiments_Tmax60.mat';
 sens_files = dir(senspath);
 % on Mac, use line below to ignore '.','..', and '.DS_Store' files that
 % are loaded into r 
-sens_files=sens_files(~ismember({sens_files.name},{'.','..','.DS_Store'}));
+sens_files = sens_files(~ismember({sens_files.name},{'.','..','.DS_Store'}));
 num_exp = length(sens_files);
 
+%% For adjusting the max/min voltage constraint: influences the inputs selected and M2M's final performance/ability to run
+sens_files_trim = struct('name',[]);
+
+for i = 1:num_exp
+        %Extract filename and also convert it to a number
+        name=sens_files(i).name;
+        index=str2double(name(1:end-4));
+
+        load(horzcat(senspath,name));
+        % Overwrite min/max voltage constraints 
+        p.volt_min = 3;
+        %p.volt_max = 4.2;
+
+        if min(V) < p.volt_min
+            fprintf('Exp. %i removed for min voltage constraint. \n',index)
+        elseif max(V) > p.volt_max
+            fprintf('Exp. %i removed for max voltage constraint. \n',index)
+        else % Case when the input is okay
+            sens_files_trim(end+1).name = name;
+        end 
+        
+%         if and(min(t(end-3:end) == '.mat'),t(1)~='e')
+% %                 disp(t);
+%             index=str2double(name(1:end-4));
+%             exp_ind(i) = index; % use for storing experiment numbers to find later
+%         else
+%             continue
+%         end
+end
+
+% Overwrite previous field of filenames
+clear sens_files
+sens_files = sens_files_trim(2:end);
+clear sens_files_trim;
+num_exp = length(sens_files);
 
 %% Perturbation Analysis %%%%%%%%%
 % %%% Comment out this section to not run
@@ -159,7 +207,9 @@ num_exp = length(sens_files);
 % [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
 
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60_trim.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
+num_exp = length(sens);
 
 if num_exp ~= length(sens)
     error('Check that senspath and exp_info.mat file are consistent i.e. have same # of experiments')
@@ -179,24 +229,24 @@ fprintf('\n');
 
 
 %% Remove parameters according to sensitivity threshold 
-
-%update values will remove the params below the sensitivity threshold
-[A_new,~] = updatevalues(sens, removed, NT_mat, Np, sens_files);
-
-%%% Plot Cardinality and Orth Sensitivity after just removing collinearity
-%%% clustered params (debugging)
-% plotcardinality(A_new, params,removed,Np);
-% plotcsensorth(Sens_orth_new, params, removed, -6, Np);
-
-%parameters
-remain_p = remaining(Np, removed);
-card = Cardinality(A_new);
-toremove = find(card == 0);
-removed = [removed, remain_p(toremove)];
-disp('Removed the following parameters according to noise sensitivity threshold');
-for zz = 1:length(toremove)
-    fprintf('%s \n', params{remain_p(toremove(zz))});
-end
+% 
+% %update values will remove the params below the sensitivity threshold
+% [A_new,~] = updatevalues(sens, removed, NT_mat, Np, sens_files);
+% 
+% %%% Plot Cardinality and Orth Sensitivity after just removing collinearity
+% %%% clustered params (debugging)
+% % plotcardinality(A_new, params,removed,Np);
+% % plotcsensorth(Sens_orth_new, params, removed, -6, Np);
+% 
+% %parameters
+% remain_p = remaining(Np, removed);
+% card = Cardinality(A_new);
+% toremove = find(card == 0);
+% removed = [removed, remain_p(toremove)];
+% disp('Removed the following parameters according to noise sensitivity threshold');
+% for zz = 1:length(toremove)
+%     fprintf('%s \n', params{remain_p(toremove(zz))});
+% end
 
 %% re-run gram-schmidt
 [A_new,Sens_orth_new] = updatevalues(sens, removed, NT_mat,Np,sens_files);

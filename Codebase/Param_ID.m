@@ -3,22 +3,11 @@
 % By Zach Gima, 2018-2-22
 
 function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,theta_0,Inputs,filename_output,LM_options)
-    %% For Savio
-
-    % addpath('/global/home/users/sspark/casadi.bin')
-
-    % parpool()
-
-    % For Savio
-    % all the cores on a node
-    % parpool(str2num(getenv('SLURM_CPUS_ON_NODE'))); % 
-    % many cores as requested.
-    % parpool(str2num(getenv('SLURM_CPUS_PER_TASK')));
-
     %% Setup Parameter Variables
     % Parse L-M Conditions
     param_exit_thresh = LM_options.exit_cond(1);
     chi_sq_exit_thresh = LM_options.exit_cond(2);
+    chi_sq_Abs_exit_thresh = LM_options.exit_cond(3);
     
     maxIter = LM_options.maxIter;
     ctrl_lambda = LM_options.ctrl_lambda;
@@ -45,18 +34,13 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     num_inputs = length(Voltage_exp);
     y_dat = cell2mat(Voltage_exp); % Truth/experimental data
     total_NT  = size(y_dat,1);
-
-    %%% *******************For Model-to-Model Comparison, don't need Rc value
-    %%% Only important for matching IR drop between experimental data
-    %%% and simulation. In which case, use Rc for each experiment
-    % Rc = 0.0027; 
     
     % In experimental ID, Rc needs to be identified for each experiment
     % (Rc_tune) and the Rc value must be attached to each profile
     if isfield(Inputs,'Rc')
         Rc = Inputs.Rc;
     else %M2M case
-        Rc = cell(length(Current_exp),1);
+        Rc = cell(length(Current_exp),1); % Create a cell num_exp x 1
         Rc(:,1) = {p.R_c}; % For M2M case, just use nominal Rc value 
     end
     
@@ -65,51 +49,18 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     % For Model-to-Model, set Q = 1
     Qfinal = 1;
 
-    % Cell_Inputs = cell(num_inputs,1);
-    % for i = 1: num_inputs
-    %     Cell_Inputs{i} = eval(['Current_exp' num2str(i)]);
-    % end
-    % Concat_input = cell2mat(Cell_Inputs);
-    % 
-    % IntI = trapz(Concat_input);
-    % Qchg=0.000062382391079*sqrt(trapz(Concat_input.^2))-0.004073969403817;
-    % Qdchg=exp((0.017020092199588*sqrt(trapz(Concat_input.^2))))*exp(-8.466269267442632);
-    % if IntI<-3500
-    %     Qfactor=Qdchg;
-    % elseif IntI>3500
-    %     Qfactor=Qchg;
-    % else
-    %     Qfactor=Qchg/2+Qdchg/2;
-    % end
-    % 
-    % Qfinal = Qfactor.^2;
+    % Experimental Case
+%     const = 2.903580414003080e-05;
+%     stdDev = const*norm(Current_exp,2);
+%     Qfinal = stdDev ^ 2;
 
     %% Run DFN or Sensitivity for Initial Parameter Guesses
 
     V_LM_CELL = cell(num_inputs,1);
     S_LM_CELL = cell(num_inputs,1);
-
-    % [ZTG Change] Only need below if using experimental data (not
-    % model-to-model)
-    % Current_exp = cell(num_inputs,1);
-    % Time_exp = cell(num_inputs,1);
-    % Voltage_exp = cell(num_inputs,1);
-    % Rc_exp = cell(num_inputs,1);
-
-    % for i=1:num_inputs
-    %     Current_exp{i} = eval(['Current_exp' num2str(i)]);
-    %     Time_exp{i} = eval(['Time_exp' num2str(i)]);
-    %     Voltage_exp{i} = eval(['Voltage_exp' num2str(i)]);
-    %     Rc_exp{i} = eval(['Rc_exp' num2str(i)]);
-    % end
-
     % Simulate DFN and Calculate Sensitivties for initial parameter values
     SensFlag = 1;
-    for idx = 1:num_inputs
-        % W/o Rc
-%         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
-
-        %W/ Rc
+    parfor idx = 1:num_inputs
         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag,Rc{idx});
     end
 
@@ -126,10 +77,8 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
     normalized_theta_bar = origin_to_norm('param',Selected_params,bounds,selection_vector);                     
 
-%     Min_theta_bar = zeros(21,1);
-%     Max_theta_bar = ones(21,1);
-    Min_theta_bar = zeros(25,1);
-    Max_theta_bar = ones(25,1);
+    Min_theta_bar = zeros(25,1); % Year 2: Total # possible parameters = 25 (22 + 3 eq. struct)
+    Max_theta_bar = ones(25,1); % Year 2: Total # possible parameters = 25 (22 + 3 eq. struct)
     normalize_params_min = Min_theta_bar(sel_k);
     normalize_params_max = Max_theta_bar(sel_k);
 
@@ -201,13 +150,12 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     save_L2norm(1) = norm(y_sim-y_dat,2);
     save_RMSE(1) = rmse(y_dat,y_sim);
     save_chi_sq_exit = []; % for initial iteration, there isn't a previous iteration to calculate convergence with
-
+    save_chi_sq_AbsTol = [];
+    
     fprintf('Initial Reduced chi_sq: %e \n',redX2(1));
     fprintf('Initial L2-norm: %f \n',save_L2norm(1));
     fprintf('Initial RMSE: %f \n',save_RMSE(1));
-    %     fprintf('Initial Parameter convergence criterion: %f \n',save_param_exit(1));%[ZTG Change]
-    %     fprintf('Initial Cost function convergence criterion: %f \n',save_chi_sq_exit(1));%[ZTG Change]
-    
+
     % If cost function is worse in consecutive iterations, no
     % need to recalculate sensitivity because the parameters
     % have not changed. Only need to change lambda
@@ -245,10 +193,6 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
             SensFlag = 0;
             parfor idx = 1:num_inputs
-                % W/o Rc
-%                 [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
-
-                %W/ Rc
                 [Y_SIM_CELL{idx},~] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0,SensFlag,Rc{idx});
             end
 
@@ -268,6 +212,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
             save_param_exit(LM_Iter) = max(abs(delta_theta)); %[ZTG Change], removed /norm since delta_theta already norm
             save_chi_sq_exit(LM_Iter) = abs((chi_sq(LM_Iter) - chi_sq(LM_Iter-1)))/  chi_sq(LM_Iter-1); %[ZTG Change], checks whether cost function is converging
+            save_chi_sq_AbsTol(LM_Iter) = abs(chi_sq(LM_Iter) - chi_sq(LM_Iter-1)); % Abs. Tol for Cost Function
             %%% Only simulation case.
             %     W = 1; 
             %%% Experiment case.
@@ -281,8 +226,9 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             %%% Multi-objective exit condition [ZTG change]
-            % If change in parameters converage and change in error converges 
-            if(save_param_exit(LM_Iter) < param_exit_thresh) || (save_chi_sq_exit(LM_Iter) < chi_sq_exit_thresh)
+            % If (Cost Function decreases) AND (parameters converage OR
+            % cost function converges)
+            if (chi_sq(LM_Iter) < chi_sq(LM_Iter-1)) && ((save_chi_sq_AbsTol(LM_Iter) < chi_sq_Abs_exit_thresh) || (save_param_exit(LM_Iter) < param_exit_thresh) || (save_chi_sq_exit(LM_Iter) < chi_sq_exit_thresh))
                 fprintf('Converged in parameters at %d iterations \n',LM_Iter)
                 break;
             end
@@ -311,6 +257,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
                 save_y_sim(LM_Iter) = save_y_sim(ind_best);
                 save_param_exit(LM_Iter) = save_param_exit(ind_best);
                 save_chi_sq_exit(LM_Iter) = save_chi_sq_exit(ind_best);
+                save_chi_sq_AbsTol(LM_Iter) = save_chi_sq_AbsTol(ind_best);
                 save_lambda_matrix(LM_Iter) = save_lambda_matrix(ind_best);
                 break;
             end
@@ -358,8 +305,8 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
              fprintf('L2-norm: %f \n',save_L2norm(LM_Iter));
              fprintf('RMSE: %f \n',rmse(y_dat,y_sim));
              fprintf('Parameter convergence criterion: %f \n',save_param_exit(LM_Iter));%[ZTG Change]
-             fprintf('Cost function convergence criterion: %f \n',save_chi_sq_exit(LM_Iter));%[ZTG Change]
-
+             fprintf('Cost function rel. tolerance criterion: %f \n',save_chi_sq_exit(LM_Iter));%[ZTG Change]
+             fprintf('Cost function abs. tolerance criterion: %f \n',save_chi_sq_AbsTol(LM_Iter));%[ZTG Change]
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % 3. Determine sensitivity calculation: Recalculate when cost
             %    function fit gets worse
@@ -391,10 +338,6 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
                     SensFlag = 1;
                     parfor idx = 1:num_inputs
-                        % W/o Rc
-%                          [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, Selected_params,SensFlag);
-
-                        %W/ Rc
                         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, SensSelec, park0, SensFlag,Rc{idx});
                     end
                     y_sim = cell2mat(V_LM_CELL);
@@ -462,6 +405,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
             paramID_out.save_y_sim = save_y_sim;
             paramID_out.save_param_exit = save_param_exit;
             paramID_out.save_chi_sq_exit = save_chi_sq_exit;
+            paramID_out.save_chi_sq_AbsTol = save_chi_sq_AbsTol;
             paramID_out.save_lambda_matrix = save_lambda_matrix;
             paramID_out.y_dat = y_dat;    
             paramID_out.LM_logic = LM_logic;
@@ -488,6 +432,7 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     paramID_out.save_y_sim = save_y_sim;
     paramID_out.save_param_exit = save_param_exit;
     paramID_out.save_chi_sq_exit = save_chi_sq_exit;
+    paramID_out.save_chi_sq_AbsTol = save_chi_sq_AbsTol;
     paramID_out.save_lambda_matrix = save_lambda_matrix;
     paramID_out.y_dat = y_dat;
     paramID_out.LM_logic = LM_logic;

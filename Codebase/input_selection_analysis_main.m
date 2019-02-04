@@ -8,12 +8,17 @@ clc
 % Directory location for max sensitivity .mat files; *****make sure they only have
 % the .mat files for the inputs in them
 
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
-% outputfolderpath  = 'Plots/InputAnalysis/Tmax45/';
+% Baseline A: Full Parameter Set (1 Group)
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/BaselineA_trim/Unformatted/';
+% outputfolderpath  = 'Plots/InputAnalysis/BaselineA_trim/';
 
-%%%%% Regular Case
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-outputfolderpath  = 'Plots/InputAnalysis/Tmax60/';
+% Baseline B: Collinearity Only (1 Group)
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/BaselineB_trim/Unformatted/';
+outputfolderpath  = 'Plots/InputAnalysis/BaselineB_trim/';
+
+% Baseline C: Collinearity + Sensitivity (2 Groups)    
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/OED_trim/Unformatted/';
+% outputfolderpath  = 'Plots/InputAnalysis/Tmax60_trim/';
 
 %%%%% Perturbation Case
 %minus50
@@ -24,11 +29,10 @@ outputfolderpath  = 'Plots/InputAnalysis/Tmax60/';
 % senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/plus50/Unformatted/';
 % outputfolderpath  = 'Plots/Perturb/InputAnalysis/plus50/';
 
-
-
-rmdir(outputfolderpath,'s');
+if exist(outputfolderpath,'dir') == 7
+    rmdir(outputfolderpath,'s'); % delete folder first (assuming it exists); this prevents the folder from keeping older .mat files
+end
 mkdir(outputfolderpath);
-
 
 %% Load Directory of Sensitivity Files into Struct
 

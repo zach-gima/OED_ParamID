@@ -4,48 +4,86 @@ clearvars
 close all
 clc
 
-
 %% User Input: File I/O 
-
 % Directory location for sensitivity .mat files; *****make sure they only have
-% the .mat files for the inputs in them
-% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax45/';
-% inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax45/';
-% inputrawpath = 'InputLibrary/MaxSensInputs/Tmax45/Unformatted/';
-% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax45.mat');
+% the .mat files for the inputs in them.
 
+% Uncomment Baseline to select
+
+% Set path to sensitivity .mat files for every input in the library
 senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/Tmax60/';
 
-%%%%% Regular Case
-inputfinalpath = 'InputLibrary/MaxSensInputs/Tmax60/';
-inputrawpath = 'InputLibrary/MaxSensInputs/Tmax60/Unformatted/';
-load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60.mat','results'); 
+%%%%% Baseline A: Full Parameter Set (1 Group)
+% inputfinalpath = 'InputLibrary/MaxSensInputs/BaselineA_trim/';
+% inputrawpath = strcat(inputfinalpath,'Unformatted/');
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_BaselineA_trim.mat','results'); 
+% 
+% % Set Number of Groups and params in each group
+% Num_groups = 1; % desired number of param groups
+% Group_size = 22; % for each group, specify # params to identify
+% 
+% % Create names for formatted inputs
+% filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
+
+%%%%% Baseline B: Collinearity Only (1 Group)
+inputfinalpath = 'InputLibrary/MaxSensInputs/BaselineB_trim/';
+inputrawpath = strcat(inputfinalpath,'Unformatted/');
+load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_BaselineB_trim.mat','results'); 
+
+% Set Number of Groups and params in each group
+Num_groups = 1; % desired number of param groups
+Group_size = 16; % for each group, specify # params to identify
+
+% Create names for formatted inputs
+filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
+
+%%%%% Baseline C: Collinearity + Sensitivity (2 Groups)
+% inputfinalpath = 'InputLibrary/MaxSensInputs/OED_trim/';
+% inputrawpath = strcat(inputfinalpath,'Unformatted/');
+% load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60_trim.mat','results'); 
+% 
+% % Set Number of Groups and params in each group
+% Num_groups = 2; % desired number of param groups
+% Group_size = [6,7]; % for each group, specify # params to identify
+% 
+% % Create names for formatted inputs
+% filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
+% filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
+% filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G2G1.mat');
 
 %%%%% Perturbation Case
-%Minus50
+%%%%% Minus50
 % inputfinalpath = 'InputLibrary/MaxSensInputs/minus50/';
-% inputrawpath = 'InputLibrary/MaxSensInputs/minus50/Unformatted/';
+% inputrawpath = strcat(inputfinalpath,'Unformatted/');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_minus50.mat','results'); 
+% 
+% % Set Number of Groups and params in each group
+% Num_groups = 2; % desired number of param groups
+% Group_size = [6,7]; % for each group, specify # params to identify
+% 
+% % Create names for formatted inputs
+% filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
+% filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
+% filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G2G1.mat');
 
-%Plus50
+%%%%% Plus50
 % inputfinalpath = 'InputLibrary/MaxSensInputs/plus50/';
-% inputrawpath = 'InputLibrary/MaxSensInputs/plus50/Unformatted/';
+% inputrawpath = strcat(inputfinalpath,'Unformatted/');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_plus50.mat','results'); 
+% 
+% % Set Number of Groups and params in each group
+% Num_groups = 2; % desired number of param groups
+% Group_size = [6,7]; % for each group, specify # params to identify
+% 
+% % Create names for formatted inputs
+% filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
+% filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
+% filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G2G1.mat');
 
 if exist(inputrawpath,'dir') == 7
     rmdir(inputrawpath,'s'); % delete folder first (assuming it exists); this prevents the folder from keeping older .mat files
 end
 mkdir(inputrawpath);
-
-% Set Number of Groups and params in each group
-Num_groups = 2; % desired number of param groups
-Group_size = [6,7]; % for each group, specify # params to identify
-
-% Create names for formatted inputs
-filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
-filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
-filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G2G1.mat');
-
 
 %% Load #s of the Max Sens Inputs selected
 
@@ -160,43 +198,43 @@ end
 %% Uncomment to create .mat files where groups are combined G2G1, G3G2G1...
 %%% Pulled from DFN_sim_main
 
-S1 = load(filename_input_vector{1});
-Current_exp_1 = S1.Current_exp;
-Time_exp_1 = S1.Time_exp;
-V_LM_CELL_1 = S1.V_LM_CELL;
-cssn_sim_1 = S1.cssn_sim;
-cssp_sim_1 = S1.cssp_sim;
-etan_sim_1 = S1.etan_sim;
-etap_sim_1 = S1.etap_sim;
-T1_sim_1 = S1.T1_sim;
-T2_sim_1 = S1.T2_sim;
-T_amb_sim_1 = S1.T_amb_sim;
-exp_num_1 = S1.exp_num;
-
-S2 = load(filename_input_vector{2});
-Current_exp_2 = S2.Current_exp;
-Time_exp_2 = S2.Time_exp;
-V_LM_CELL_2 = S2.V_LM_CELL;
-cssn_sim_2 = S2.cssn_sim;
-cssp_sim_2 = S2.cssp_sim;
-etan_sim_2 = S2.etan_sim;
-etap_sim_2 = S2.etap_sim;
-T1_sim_2 = S2.T1_sim;
-T2_sim_2 = S2.T2_sim;
-T_amb_sim_2 = S2.T_amb_sim;
-exp_num_2 = S2.exp_num;
-
-
-% G2G1
-Current_exp =  vertcat(Current_exp_2,Current_exp_1);
-Time_exp =  vertcat(Time_exp_2,Time_exp_1);
-V_LM_CELL = vertcat(V_LM_CELL_2,V_LM_CELL_1);
-cssn_sim = vertcat(cssn_sim_2,cssn_sim_1);
-cssp_sim = vertcat(cssp_sim_2,cssp_sim_1);
-etan_sim = vertcat(etan_sim_2,etan_sim_1);
-etap_sim = vertcat(etap_sim_2,etap_sim_1);
-T1_sim = vertcat(T1_sim_2,T1_sim_1);
-T2_sim = vertcat(T2_sim_2,T2_sim_1);
-T_amb_sim = vertcat(T_amb_sim_2,T_amb_sim_1);
-exp_num = vertcat(exp_num_2,exp_num_1);
-save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num')
+% S1 = load(filename_input_vector{1});
+% Current_exp_1 = S1.Current_exp;
+% Time_exp_1 = S1.Time_exp;
+% V_LM_CELL_1 = S1.V_LM_CELL;
+% cssn_sim_1 = S1.cssn_sim;
+% cssp_sim_1 = S1.cssp_sim;
+% etan_sim_1 = S1.etan_sim;
+% etap_sim_1 = S1.etap_sim;
+% T1_sim_1 = S1.T1_sim;
+% T2_sim_1 = S1.T2_sim;
+% T_amb_sim_1 = S1.T_amb_sim;
+% exp_num_1 = S1.exp_num;
+% 
+% S2 = load(filename_input_vector{2});
+% Current_exp_2 = S2.Current_exp;
+% Time_exp_2 = S2.Time_exp;
+% V_LM_CELL_2 = S2.V_LM_CELL;
+% cssn_sim_2 = S2.cssn_sim;
+% cssp_sim_2 = S2.cssp_sim;
+% etan_sim_2 = S2.etan_sim;
+% etap_sim_2 = S2.etap_sim;
+% T1_sim_2 = S2.T1_sim;
+% T2_sim_2 = S2.T2_sim;
+% T_amb_sim_2 = S2.T_amb_sim;
+% exp_num_2 = S2.exp_num;
+% 
+% 
+% % G2G1
+% Current_exp =  vertcat(Current_exp_2,Current_exp_1);
+% Time_exp =  vertcat(Time_exp_2,Time_exp_1);
+% V_LM_CELL = vertcat(V_LM_CELL_2,V_LM_CELL_1);
+% cssn_sim = vertcat(cssn_sim_2,cssn_sim_1);
+% cssp_sim = vertcat(cssp_sim_2,cssp_sim_1);
+% etan_sim = vertcat(etan_sim_2,etan_sim_1);
+% etap_sim = vertcat(etap_sim_2,etap_sim_1);
+% T1_sim = vertcat(T1_sim_2,T1_sim_1);
+% T2_sim = vertcat(T2_sim_2,T2_sim_1);
+% T_amb_sim = vertcat(T_amb_sim_2,T_amb_sim_1);
+% exp_num = vertcat(exp_num_2,exp_num_1);
+% save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num')

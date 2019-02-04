@@ -4,6 +4,8 @@ function [ tyout, V_0, sgn, NT, experiment, diagout, absout, R, Q, E, I,STS,STSn
 %calculated by Dong Zhang
 %Author:Dylan kato
 %10/26/18
+    p.volt_max = 4.2;
+    p.volt_min = 3;
     
     load(horzcat(path,name));
     index=str2double(name(1:end-4));

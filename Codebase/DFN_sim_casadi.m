@@ -162,7 +162,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     V0 = Voltage_exp(1);
     t = 1:length(Time_exp);
     I = -Current_exp/p.Area;
-%     p.R_c = Rc; % [ZTG change] removed for no model-to-model comparison
+    p.R_c = Rc; % [ZTG change] removed for no model-to-model comparison
     NT = length(t);
 
     %% (DFN Code Copy) Initial Conditions & Preallocation
@@ -788,7 +788,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             end
         end
 
-        % Collect Outputs
+    %% Collect Outputs
         v_sim = v_sim'; % Column matrix
 
     %     alg_states.csn_sim = csn_sim;
@@ -838,7 +838,8 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
         end
     catch e %e is an MException struct
     % An error will put you here.
-        fprintf('CasADi error for Exp %s at %d iteration: \n',exp_num,k);
+        save('casadi_debug','x_sim','z_sim','v_sim');
+        fprintf('CasADi error for Exp %s at timestep %d: \n',exp_num,k);
         errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
     end
 end

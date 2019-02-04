@@ -31,7 +31,7 @@ function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_pa
     print(strcat(output_folder,'param_estimates'),'-dpng')
 
     %% GIF
-    animate_DKK(output_folder,selection_vector,truth_param)
+%     animate_DKK(output_folder,selection_vector,truth_param)
 
     %% Plot Individual Parameter Evolution
     
@@ -135,6 +135,10 @@ function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_pa
     
     %% Voltage Data Fit
 
+    %%% Plot initial voltage fit (initial parameter guess vs. t and truth
+    %%% voltage vs. t)
+    
+    
     %%% Y_dat & Y_sim
     figure('Position', [100 100 900 700])
     t = 1:length(paramID_out.y_dat);

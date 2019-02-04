@@ -31,10 +31,6 @@ function [J_LM,ci95,sigma_y,covar_p,alg_states] = conf_interval(p, Inputs, SensS
     % calculated Jacobian may not correspond to the identified parameter set.
     SensFlag = 1;
     parfor idx = 1:num_inputs
-        %w/o Rc
-%         [V_LM_CELL{idx}, alg_states{idx}, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},T_amb{idx}, SensSelec, park0, SensFlag);
-        
-        %w/ Rc
         [V_LM_CELL{idx}, alg_states{idx}, S_LM_CELL{idx}] = DFN_sim_casadi(p,exp_num{idx},Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},T_amb{idx}, SensSelec, park0, SensFlag, Rc{idx});
     end
 

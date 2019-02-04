@@ -2,16 +2,16 @@
 function animate_DKK(output_folder,selection_vector,truth_param)
     wait = 0;
 
-%     % Baseline C
-%     flag = 1; % for gif making purposes
-%     load(strcat(output_folder,'G1_nom.mat'),'ci95_full','paramID_out','theta_0_true','bounds');
-%     group = 1;
-%     param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
-% 
-%     flag = 0; % for gif making purposes
-%     load(strcat(output_folder,'G2G1_nom.mat'),'ci95_full','paramID_out','theta_0_true','bounds');
-%     group = 2;
-%     param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
+    % Baseline C
+    flag = 1; % for gif making purposes
+    load(strcat(output_folder,'G1_nom.mat'),'ci95_full','paramID_out','theta_0_true','bounds');
+    group = 1;
+    param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
+
+    flag = 0; % for gif making purposes
+    load(strcat(output_folder,'G2G1_nom.mat'),'ci95_full','paramID_out','theta_0_true','bounds');
+    group = 2;
+    param_table_plotter_DKK_main(ci95_full,selection_vector,group,paramID_out,wait,theta_0_true,truth_param,bounds,flag,output_folder)
 
     % Baseline B
 %     flag = 1; % for gif making purposes

@@ -35,60 +35,59 @@
     %   () 24 : E.kn        => p.E.kn
     %   () 25 : E.kp        => p.E.kp
     
-function [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,input_folder,output_folder)
+function [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder)
     
     %% Set Inputs, Parameters to Identify, and Inputs for Calculating Confidence Intervals.
-    % These values are set differently based on 
-
-    % Input Filenames (Year 2, post-collinearity and noise threshold clustering/elimination) 
-    % Starting off just trying 2 groups of params
-    filename_input_vector = cell(2,1);
-    filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
-    filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
+    % These values are set differently based on the Baseline specified
+    
+    filename_input_vector = cell(num_groups,1);
     
     % Create output filenames and selection vector depending on approach
-    filename_output_vector = cell(2,1);
-    selection_vector = zeros(25,2);
+    filename_output_vector = cell(num_groups,1);
+    selection_vector = zeros(25,num_groups);
     
-    ci_select = cell(2,1);
-    ci_input_vector = cell(2,1);
+    ci_select = cell(num_groups,1);
+    ci_input_vector = cell(num_groups,1);
 
     % Baseline A: Full Parameter Set (1 Group)
     if strcmp(baseline{1},'full_') == 1 
+        %Set input filename
+        filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+        
         %Set output filename
-        filename_output_vector{end} = strcat(output_folder,baseline{1},init_cond,'.mat');
+        filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_',init_cond,'.mat');
         
         %Set selection vector
-        selection_vector(:,end) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
+        selection_vector(:,1) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
         
-        ci_select{end} = find(selection_vector(:,end));
-        ci_input_vector{end} = strcat(input_folder,'V_sim_G2G1.mat');
+        %Set confidence interval input and parameters
+        ci_select{1} = find(selection_vector(:,1));
+        ci_input_vector{1} = filename_input_vector{1};
       
     % Baseline B: Collinearity Only (1 Group)
     elseif strcmp(baseline{1},'collinearity_') == 1
-        filename_output_vector{end} = strcat(output_folder,baseline{1},init_cond,'.mat');
+        %Set input filename
+        filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+        
+        %Set output filename
+        filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_',init_cond,'.mat');
 
         %Set selection vector
-        selection_vector(:,end) = [1;1;1;1;0;0;1;1;1;0;1;1;0;1;1;0;0;1;0;0;1;1;1;1;0];
+        selection_vector(:,1) = [1;1;1;1;0;0;1;1;1;0;1;1;0;1;1;0;0;1;0;0;1;1;1;1;0];
         
-        ci_select{end} = find(selection_vector(:,end));
-        ci_input_vector{end} = strcat(input_folder,'V_sim_G2G1.mat');
+        %Set confidence interval input and parameters
+        ci_select{1} = find(selection_vector(:,1));
+        ci_input_vector{1} = filename_input_vector{1};
         
-    elseif strcmp(baseline{1},'OED_') == 1 % Baseline C: Collinearity + Sensitivity (2 Groups, can write for 1 as well)
-        % Uncomment grouping approach you want to use
-        %%%%%%%%%%%%%%%%%% All at once %%%%%%%%%%%%%%%%%% 
-%         filename_output_vector{2} = strcat(output_folder,baseline{2},init_cond,'.mat');
-% 
-%         % Selection Vector
-%         selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % all together
-%             
-%         ci_select{2} = selection_vector(:,2);
-%         ci_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
-       
-        %%%%%%%%%%%%%%%%%% Cumulative %%%%%%%%%%%%%%%%%% 
+    % Baseline C: Collinearity + Sensitivity (2 Groups)    
+    elseif strcmp(baseline{1},'OED_') == 1 
+        %Set input filename
+        filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+        filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1.mat');
+        
         %Set output filename
-        filename_output_vector{1} = strcat(output_folder,baseline{1},init_cond,'.mat');
-        filename_output_vector{2} = strcat(output_folder,baseline{1},init_cond,'.mat');
+        filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_',init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{1},'G2G1_',init_cond,'.mat');
         
         % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
         % Starting off just trying 2 groups of params
@@ -96,31 +95,41 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
         selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
         selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
         
+        %Set confidence interval input and parameters
         ci_select{1} = find(selection_vector(:,1));
         ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
 
         ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
         ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
         
+    % OED Experimental ParamID (Pre-Q Inclusion)    
+    elseif strcmp(baseline{1},'OED_EXP_') == 1 
+        %Set input filename
+        filename_input_vector{1} = strcat(input_folder,'V_sim_G1_easy.mat');
+        filename_input_vector{2} = strcat(input_folder,'V_sim_G2G1_easy.mat');
+        filename_input_vector{3} = strcat(input_folder,'V_sim_G2G1_all.mat');
+        
+        %Set output filename
+        filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_easy_',init_cond,'.mat');
+        filename_output_vector{2} = strcat(output_folder,baseline{1},'G2G1_easy_',init_cond,'.mat');
+        filename_output_vector{3} = strcat(output_folder,baseline{1},'G2G1_all_',init_cond,'.mat');
+        
+        % Selection vector (Year 2, post-collinearity and noise threshold clustering/elimination) 
+        % Starting off just trying 2 groups of params
+        % [ZTG Updated 2018-11-27]
+        selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
+        selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
+        selection_vector(:,3) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
+
+        %Set confidence interval input and parameters
+        ci_select{1} = find(selection_vector(:,1));
+        ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
+        ci_select{3} = 0;
+        
+        ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+        ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
+        ci_input_vector{3} = strcat(input_folder,'V_sim_G2.mat'); %won't be used
     else
         error('Incorrect baseline defined. Please check variable "baseline" ');
     end
-
-    %% Confidence Interval variables
-    % Create vector of indices for calculating confidence intervals
-    % Will be calculating confidence intervals separately for each group
-%     ci_select = cell(4,1);
-%     ci_select{1} = find(selection_vector(:,1));
-%     ci_select{2} = find(selection_vector(:,2) - selection_vector(:,1));
-%     ci_select{3} = find(selection_vector(:,3) - selection_vector(:,2));
-%     ci_select{4} = find(selection_vector(:,4) - selection_vector(:,3));
-    
-    % CI Input filenames
-    % Note: for calculating confidence intervals, will only use the oed-cvx
-    % selected inputs for that respective group
-%     ci_input_vector = cell(4,1);
-%     ci_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
-%     ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
-%     ci_input_vector{3} = strcat(input_folder,'V_sim_G3.mat');
-%     ci_input_vector{4} = strcat(input_folder,'V_sim_G4.mat');
 end

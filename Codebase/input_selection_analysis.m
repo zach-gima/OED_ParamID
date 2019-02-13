@@ -18,29 +18,34 @@ function input_selection_analysis(r,senspath,folder_path)
         load(horzcat(senspath,sens_index{i}));
 
         %%% Need: t, I, V, V_0, T1, T2
-        sens_inputs(i).t = t;
-        sens_inputs(i).I = I;
-        sens_inputs(i).T1 = alg_states.T1_sim - 273.15;
-        sens_inputs(i).T2 = alg_states.T2_sim - 273.15;
-        sens_inputs(i).T_a = T_a(1);
+        V_0 = V(1);
+        sens_inputs(i).t = Time_exp;
+        sens_inputs(i).I = Current_exp;
+        sens_inputs(i).T_a = T_amb_sim(1);
         sens_inputs(i).V_0 = V_0;
         sens_inputs(i).V = V;
-        sens_inputs(i).maxT1 = max(sens_inputs(i).T1);
-        sens_inputs(i).maxT2 = max(sens_inputs(i).T2);
+%         sens_inputs(i).T1 = alg_states.T1_sim - 273.15;
+%         sens_inputs(i).T2 = alg_states.T2_sim - 273.15;
+%         sens_inputs(i).maxT1 = max(sens_inputs(i).T1);
+%         sens_inputs(i).maxT2 = max(sens_inputs(i).T2);
 
-        if V_0 == 3.9481
+        if abs(V_0 - 3.9481)/3.9481 <= 0.01
             SOC_0 = 0.8;
-        elseif V_0 == 3.7689
+            sens_inputs(i).V_0 = 3.9481;
+        elseif abs(V_0 - 3.7689)/3.7689 <= 0.01
             SOC_0 = 0.6;
-        elseif V_0 == 3.5982
+            sens_inputs(i).V_0 = 3.7689;
+        elseif abs(V_0 - 3.5982)/3.5982 <= 0.01
             SOC_0 = 0.4;
-        elseif V_0 == 3.4562
+            sens_inputs(i).V_0 = 3.5982;
+        elseif abs(V_0 - 3.4562)/3.4562 <= 0.01
             SOC_0 = 0.2;
+            sens_inputs(i).V_0 = 3.4562;
         else
             SOC_0 = 0;
         end
         % Print Quick Useful Info
-        fprintf('Exp. %s has Tamb = %i, V_0 = %0.3f, SOC_0 = %0.2f \n',sens_index{i}(1:end-4), T_a(1), V_0,SOC_0);
+        fprintf('Exp. %s has Tamb = %i, V_0 = %0.3f, SOC_0 = %0.2f \n',sens_index{i}(1:end-4), T_amb_sim(1), V_0,SOC_0);
 
     end    
 
@@ -65,13 +70,13 @@ function input_selection_analysis(r,senspath,folder_path)
         end
 
         %check input length
-        if (length(sens_inputs(i).t) - 1 == exp_length_vec(1))
+        if (length(sens_inputs(i).t) - 10 == exp_length_vec(1))
             exp_length_count(1) = exp_length_count(1) + 1;
-        elseif (length(sens_inputs(i).t) - 1 == exp_length_vec(2))
+        elseif (length(sens_inputs(i).t) - 10 == exp_length_vec(2))
             exp_length_count(2) = exp_length_count(2) + 1;
-        elseif (length(sens_inputs(i).t) - 1 == exp_length_vec(3))
+        elseif (length(sens_inputs(i).t) - 10 == exp_length_vec(3))
             exp_length_count(3) = exp_length_count(3) + 1;
-        elseif (length(sens_inputs(i).t) - 1 == exp_length_vec(4))
+        elseif (length(sens_inputs(i).t) - 10 == exp_length_vec(4))
             exp_length_count(4) = exp_length_count(4) + 1;
         else
             exp_length_count(5) = exp_length_count(5) + 1;
@@ -179,21 +184,22 @@ function input_selection_analysis(r,senspath,folder_path)
         saveas(f_V,filename_V,'png')  
 
         % Plot Temperature evolution (t vs. T)
-        f_T = figure('Position', [100 100 900 700],'visible','off');
-        hold on
-        plot(sens_inputs(pp).t,sens_inputs(pp).T1,'--b','LineWidth',3)
-        plot(sens_inputs(pp).t,sens_inputs(pp).T2,'-r','LineWidth',3)
-        hold off
-
-        legend('T1','T2')
-        title_text = strcat('Temperature, Input Profile: #',input_num_str);
-        title(title_text)
-        xlabel('Time (s)')
-        ylabel('Temperature (C)')
-        set(gca,'Fontsize',fs) 
-
-        filename_T = strcat(folder_path,input_num_str,'_T');
-        saveas(f_T,filename_T,'fig')
-        saveas(f_T,filename_T,'png') 
+        % note this isn't available for experimental case
+%         f_T = figure('Position', [100 100 900 700],'visible','off');
+%         hold on
+%         plot(sens_inputs(pp).t,sens_inputs(pp).T1,'--b','LineWidth',3)
+%         plot(sens_inputs(pp).t,sens_inputs(pp).T2,'-r','LineWidth',3)
+%         hold off
+% 
+%         legend('T1','T2')
+%         title_text = strcat('Temperature, Input Profile: #',input_num_str);
+%         title(title_text)
+%         xlabel('Time (s)')
+%         ylabel('Temperature (C)')
+%         set(gca,'Fontsize',fs) 
+% 
+%         filename_T = strcat(folder_path,input_num_str,'_T');
+%         saveas(f_T,filename_T,'fig')
+%         saveas(f_T,filename_T,'png') 
     end
 end

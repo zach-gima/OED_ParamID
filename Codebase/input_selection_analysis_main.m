@@ -13,12 +13,16 @@ clc
 % outputfolderpath  = 'Plots/InputAnalysis/BaselineA_trim/';
 
 % Baseline B: Collinearity Only (1 Group)
-senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/BaselineB_trim/Unformatted/';
-outputfolderpath  = 'Plots/InputAnalysis/BaselineB_trim/';
+% senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/BaselineB_trim/Unformatted/';
+% outputfolderpath  = 'Plots/InputAnalysis/BaselineB_trim/';
 
 % Baseline C: Collinearity + Sensitivity (2 Groups)    
 % senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/MaxSensInputs/OED_trim/Unformatted/';
 % outputfolderpath  = 'Plots/InputAnalysis/Tmax60_trim/';
+
+% Experimental Case
+senspath = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/Experimental/Unformatted/';
+outputfolderpath  = 'Plots/InputAnalysis/Experimental/';
 
 %%%%% Perturbation Case
 %minus50

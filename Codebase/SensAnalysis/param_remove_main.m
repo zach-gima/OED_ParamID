@@ -229,24 +229,24 @@ fprintf('\n');
 
 
 %% Remove parameters according to sensitivity threshold 
-% 
-% %update values will remove the params below the sensitivity threshold
-% [A_new,~] = updatevalues(sens, removed, NT_mat, Np, sens_files);
-% 
-% %%% Plot Cardinality and Orth Sensitivity after just removing collinearity
-% %%% clustered params (debugging)
-% % plotcardinality(A_new, params,removed,Np);
-% % plotcsensorth(Sens_orth_new, params, removed, -6, Np);
-% 
-% %parameters
-% remain_p = remaining(Np, removed);
-% card = Cardinality(A_new);
-% toremove = find(card == 0);
-% removed = [removed, remain_p(toremove)];
-% disp('Removed the following parameters according to noise sensitivity threshold');
-% for zz = 1:length(toremove)
-%     fprintf('%s \n', params{remain_p(toremove(zz))});
-% end
+
+%update values will remove the params below the sensitivity threshold
+[A_new,~] = updatevalues(sens, removed, NT_mat, Np, sens_files);
+
+%%% Plot Cardinality and Orth Sensitivity after just removing collinearity
+%%% clustered params (debugging)
+% plotcardinality(A_new, params,removed,Np);
+% plotcsensorth(Sens_orth_new, params, removed, -6, Np);
+
+%parameters
+remain_p = remaining(Np, removed);
+card = Cardinality(A_new);
+toremove = find(card == 0);
+removed = [removed, remain_p(toremove)];
+disp('Removed the following parameters according to noise sensitivity threshold');
+for zz = 1:length(toremove)
+    fprintf('%s \n', params{remain_p(toremove(zz))});
+end
 
 %% re-run gram-schmidt
 [A_new,Sens_orth_new] = updatevalues(sens, removed, NT_mat,Np,sens_files);

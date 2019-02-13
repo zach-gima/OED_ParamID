@@ -47,12 +47,12 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
     %% Q (Covariance value)
     % [ZTG Change]
     % For Model-to-Model, set Q = 1
-    Qfinal = 1;
+%     Qfinal = 1;
 
     % Experimental Case
-%     const = 2.903580414003080e-05;
-%     stdDev = const*norm(Current_exp,2);
-%     Qfinal = stdDev ^ 2;
+    const = 2.903580414003080e-05;
+    stdDev = const*norm(Current_exp,2);
+    Qfinal = stdDev ^ 2;
 
     %% Run DFN or Sensitivity for Initial Parameter Guesses
 

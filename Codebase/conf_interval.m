@@ -46,17 +46,28 @@ function [J_LM,ci95,sigma_y,covar_p,alg_states] = conf_interval(p, Inputs, SensS
 %     J_LM_norm = bsxfun(@times,normalized_sens_bar', J_LM);
 %     covar_p_norm = inv(J_LM'* weight * J_LM);
 %     sigma_p_norm = sqrt(diag(covar_p));
-
-
-
+    
     %%% Only simulation case.
-%     weight = 1; 
+    weight = 1; 
 
     %%% Experiment case.
-    DoF = total_NT - num_param +1;
-    sig_y_hat = (1/DoF)*(y_minus_yfit'*y_minus_yfit);
-    
-    weight = eye(1)/sig_y_hat;
+%     DoF = total_NT - num_param +1;
+%     sig_y_hat = (1/DoF)*(y_minus_yfit'*y_minus_yfit);
+%     weight = eye(1)/sig_y_hat;
+
+    %%% Q Case  
+%     % Experimental Case
+%     const = 2.903580414003080e-05;
+%     Qfinal = zeros(num_inputs,1);
+%     
+%     W = cell(num_inputs,1);
+%     for ii = 1:num_inputs
+%         stdDev = const*norm(Current_exp{ii},2);
+%         Qfinal(ii) = stdDev ^ 2;
+%         W_temp = 1/Qfinal(ii);
+%         W{ii} = ones(length(Current_exp{ii}),length(Current_exp{ii}))*W_temp;
+%     end
+%     W = sparse(blkdiag(W{:}));
 
     covar_p = inv(J_LM'* weight * J_LM);
     sigma_p = sqrt(diag(covar_p));

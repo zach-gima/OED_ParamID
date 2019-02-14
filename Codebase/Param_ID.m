@@ -44,16 +44,6 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
         Rc(:,1) = {p.R_c}; % For M2M case, just use nominal Rc value 
     end
     
-    %% Q (Covariance value)
-    % [ZTG Change]
-    % For Model-to-Model, set Q = 1
-%     Qfinal = 1;
-
-    % Experimental Case
-    const = 2.903580414003080e-05;
-    stdDev = const*norm(Current_exp,2);
-    Qfinal = stdDev ^ 2;
-
     %% Run DFN or Sensitivity for Initial Parameter Guesses
 
     V_LM_CELL = cell(num_inputs,1);
@@ -119,9 +109,24 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
     %%% Default version.
     % W = 1/(y_dat'*y_dat);
-
-    %%% Output error variance.
+    
+    %%% Q Covariance [ZTG Change]
+    % For Model-to-Model, set Q = 1
+    Qfinal = 1;
     W = 1/Qfinal;
+
+%     % Experimental Case
+%     const = 2.903580414003080e-05;
+%     Qfinal = zeros(num_inputs,1);
+%     
+%     W = cell(num_inputs,1);
+%     for ii = 1:num_inputs
+%         stdDev = const*norm(Current_exp{ii},2);
+%         Qfinal(ii) = stdDev ^ 2;
+%         W_temp = 1/Qfinal(ii);
+%         W{ii} = ones(length(Current_exp{ii}),length(Current_exp{ii}))*W_temp;
+%     end
+%     W = sparse(blkdiag(W{:}));
 
     normalize_lambda = diag(J_LM'*W*J_LM);
     lambda = ctrl_lambda*diag(normalize_lambda); % When initial guess is far from true, set lambda BIG!

@@ -5,8 +5,8 @@ clc
 
 % Load Resuts
 % result_folder = '/Users/ztakeo/Box Sync/HPC/HPC1/03-Dec-2018 20_08_19/';
-result_folder = '/Users/ztakeo/Desktop/20190130-update-outputs/30-Jan-2019 21_06_05/';
-result_filename = 'full_nom_iter_10.mat';
+result_folder = '/Users/ztakeo/Box Sync/HPC/HPC2/A-5/';
+result_filename = 'full_nom.mat';
 result_path = strcat(result_folder,result_filename);
 load(result_path);
 
@@ -29,7 +29,6 @@ run param/params_nominal
 init_cond = 'nom';
 theta_0 = Nominal_param;
 
-
 %%% Baseline C Case:
 % selection_vector = zeros(25,2);
 % selection_vector(:,2) = [1;1;1;1;0;0;1;1;1;0;1;1;0;1;1;0;0;1;0;0;1;1;1;1;0];
@@ -48,7 +47,7 @@ num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
 perturb_index = find(selection_vector(:,1)); % G1
 % perturb_index = find(selection_vector(:,2)); %G1 & G2
 
-perturb_factor = 1.2;
+perturb_factor = 0.95;
 theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
 
 theta_0_true = theta_0;

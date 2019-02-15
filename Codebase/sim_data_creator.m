@@ -39,20 +39,27 @@ clc
 % filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
 
 %%%% Baseline C: Collinearity + Sensitivity (2 Groups)
-inputfinalpath = 'InputLibrary/Experimental/';
+% inputfinalpath = 'InputLibrary/Experimental/';
+inputfinalpath = 'InputLibrary/Experimental/4Groups/';
 inputrawpath = strcat(inputfinalpath,'Unformatted/');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60_trim.mat','results'); 
 % In experimental case, w/o results .mat file
 results.max_exp_num_sorted = [632;250;286;57;298;287;526;898;294;884;270;47;298];
+% results.max_exp_num_sorted = [632;286;287;526;898;294;884;270;47];
+
 
 % Set Number of Groups and params in each group
-Num_groups = 2; % desired number of param groups
-Group_size = [6,7]; % for each group, specify # params to identify
+Num_groups = 4; % desired number of param groups
+Group_size = [3;3;3;4]; % for each group, specify # params to identify
 
 % Create names for formatted inputs
 filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
 filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
-filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G2G1.mat');
+filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G3.mat');
+filename_input_vector{4} = strcat(inputfinalpath,'V_sim_G4.mat');
+filename_input_vector{5} = strcat(inputfinalpath,'V_sim_G2G1.mat');
+filename_input_vector{6} = strcat(inputfinalpath,'V_sim_G3G2G1.mat');
+filename_input_vector{7} = strcat(inputfinalpath,'V_sim_G4G3G2G1.mat');
 
 %%%%% Perturbation Case
 %%%%% Minus50
@@ -109,9 +116,9 @@ Num_unique_inputs = length(max_exp_num_unique);
 if length(Group_size) ~= Num_groups
     error('# groups specified in Group_size does not match Group_size. Fix discrepancy')
 end
-if sum(Group_size) ~= Num_params
-    error('Total # of params specified in Group_size does not match Num_params to be identified.')
-end
+% if sum(Group_size) ~= Num_params
+%     error('Total # of params specified in Group_size does not match Num_params to be identified.')
+% end
 
 %% Concatenate Input and Corresponding Simulation Data Across Group Inputs
 
@@ -238,6 +245,26 @@ Rc_2 = S2.Rc;
 % T1_sim_2 = S2.T1_sim;
 % T2_sim_2 = S2.T2_sim;
 
+
+%%% Group 3 Input Data
+S3 = load(filename_input_vector{3});
+Current_exp_3 = S3.Current_exp;
+Time_exp_3 = S3.Time_exp;
+V_LM_CELL_3 = S3.V_LM_CELL;
+T_amb_sim_3 = S3.T_amb_sim;
+exp_num_3 = S3.exp_num;
+Rc_3 = S3.Rc;
+
+
+%%% Group 4 Input Data
+S4 = load(filename_input_vector{4});
+Current_exp_4 = S4.Current_exp;
+Time_exp_4 = S4.Time_exp;
+V_LM_CELL_4 = S4.V_LM_CELL;
+T_amb_sim_4 = S4.T_amb_sim;
+exp_num_4 = S4.exp_num;
+Rc_4 = S4.Rc;
+
 %%% G2G1
 Current_exp =  vertcat(Current_exp_2,Current_exp_1);
 Time_exp =  vertcat(Time_exp_2,Time_exp_1);
@@ -254,5 +281,28 @@ Rc = vertcat(Rc_2,Rc_1);
 % T1_sim = vertcat(T1_sim_2,T1_sim_1);
 % T2_sim = vertcat(T2_sim_2,T2_sim_1);
 
+save(filename_input_vector{5},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+
+%%% G3G2G1
+Current_exp =  vertcat(Current_exp_3,Current_exp_2,Current_exp_1);
+Time_exp =  vertcat(Time_exp_3,Time_exp_2,Time_exp_1);
+V_LM_CELL = vertcat(V_LM_CELL_3,V_LM_CELL_2,V_LM_CELL_1);
+T_amb_sim = vertcat(T_amb_sim_3,T_amb_sim_2,T_amb_sim_1);
+exp_num = vertcat(exp_num_3,exp_num_2,exp_num_1);
+Rc = vertcat(Rc_3,Rc_2,Rc_1);
+
+save(filename_input_vector{6},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+
+
+%%% G4G3G2G1
+Current_exp =  vertcat(Current_exp_4,Current_exp_3,Current_exp_2,Current_exp_1);
+Time_exp =  vertcat(Time_exp_4,Time_exp_3,Time_exp_2,Time_exp_1);
+V_LM_CELL = vertcat(V_LM_CELL_4,V_LM_CELL_3,V_LM_CELL_2,V_LM_CELL_1);
+T_amb_sim = vertcat(T_amb_sim_4,T_amb_sim_3,T_amb_sim_2,T_amb_sim_1);
+exp_num = vertcat(exp_num_4,exp_num_3,exp_num_2,exp_num_1);
+Rc = vertcat(Rc_4,Rc_3,Rc_2,Rc_1);
+
+save(filename_input_vector{7},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+
 % save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num')
-save(filename_input_vector{3},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+% save(filename_input_vector{3},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');

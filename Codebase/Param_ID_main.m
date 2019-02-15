@@ -23,8 +23,8 @@ LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh, chi_sq_Abs_exit_t
 LM_options.maxIter = 20;
 
 % ZTG Note: Tends to be instability when starting group 2; i.e. big parameter estimates cause CasADi errors; try being more conservative initially when starting group 2 
-% LM_options.ctrl_lambda = 1e-2; %100; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
-ctrl_lambda = [1e-2;1e-2];
+LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
+% ctrl_lambda = [1e-2;1e-2];
 
 %%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
 % % Baseline A: Full Parameter Set (1 Group)
@@ -37,7 +37,8 @@ ctrl_lambda = [1e-2;1e-2];
 
 % Baseline C: Collinearity + Sensitivity (2 Groups)
 baseline = {'OED_'};
-num_groups = 2; % Number of parameter groups
+% num_groups = 2; % Number of parameter groups
+num_groups = 4; % Number of parameter groups
 
 % % Experimental ParamID (Pre-Q Inclusion)
 % baseline = {'OED_EXP_'};
@@ -105,7 +106,7 @@ datetime_initial
 fprintf('Initial Conditions: %s \n',init_cond);
 fprintf('Baseline: %s \n \n',baseline{1});
 disp('Levenberg-Marquardt Params')
-fprintf('Initial Lambda: %5.2e \n',ctrl_lambda);
+fprintf('Initial Lambda: %5.2e \n',LM_options.ctrl_lambda);
 fprintf('Param Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(1));
 fprintf('Cost Function Rel. Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(2));
 fprintf('Cost Function Abs. Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(3));
@@ -113,82 +114,82 @@ fprintf('Cost Function Abs. Convergence Exit Condition: %5.2e \n',LM_options.exi
 fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
 
 %% Perturbation Analysis %%%%%%%%%
-%%% Comment out this section to not run
-%%% All true params except group X; perturb group X 10% away from
-%%% true values. 
-truth_param = Nominal_param;
-
-% change this to indicate how many groups are being perturbed; e.g. for G2G1, num_groups = 2
-num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
-
-% Perturb parameters of interest all at the beginning
-% perturb_index = find(selection_vector(:,1)); % G1
-perturb_index = find(selection_vector(:,end)); %G1 & G2
-
-perturb_factor = 1.05;
-theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
-
-% Display Analysis Info
-fprintf('Perturbation Analysis Experiment \n');
-fprintf('Groups 1->%i \n',num_perturbedgroups); 
-fprintf('Number of parameters: %i \n',length(perturb_index));
-fprintf('Perturb Factor = %5.2f \n \n', perturb_factor);
-
-% Overwrite the nominal values in the param struct w/ true values
-p.D_s_n0 = theta_0(1); %[G2]
-p.D_s_p0 = theta_0(2); %[G2]
-p.R_s_n = theta_0(3); %[G1]
-p.R_s_p = theta_0(4); %[G1]
-% p.epsilon_s_n = theta_0(5); %  Equil. Struct
-% p.epsilon_s_p = theta_0(6); %  Equil. Struct
-p.sig_n = theta_0(7);
-p.sig_p = theta_0(8);
-p.ElecFactorD = theta_0(9); %[G2]
-p.epsilon_e_n = theta_0(10); %[G2]
-p.epsilon_e_s = theta_0(11);
-p.epsilon_e_p = theta_0(12);
-p.ElecFactorK = theta_0(13); %[G2]
-p.t_plus = theta_0(14);
-p.ElecFactorDA = theta_0(15); %[G2]
-p.k_n0 = theta_0(16);
-p.k_p0 = theta_0(17);
-p.R_f_n = theta_0(18);
-p.R_f_p = theta_0(19);
-% p.n_Li_s = theta_0(20); %  Equil. Struct
-p.c_e0 = theta_0(21);
-p.E.Dsn = theta_0(22);
-p.E.Dsp = theta_0(23);
-p.E.kn = theta_0(24);
-p.E.kp = theta_0(25);
-
-%%% Update Dependencies
-% Specific interfacial surface area
-p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
-p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
-
-% make element to caclulate phi_{s} by Saehong Park 
-p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
-p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
-
-% Check whether the perturbed value exceeds a pre-set bound (params_bounds)
-% If so, then replace the bound with the initial value
-for ii = 1:length(theta_0)  
-    
-    % Initial Value > Upper Bound
-    if theta_0(ii) > bounds.max(ii)
-        theta_0(ii) = bounds.max(ii); % set param value to bound
-%         bounds.min(ii) = theta_0(ii); % set bound to param value
-        fprintf('Parameter %i perturbed past upper bound \n', ii);
-    end
-    
-    % Initial Value < Lower Bound
-    if theta_0(ii) < bounds.min(ii)
-        theta_0(ii) = bounds.min(ii); % set param value to bound
-%         bounds.min(ii) = theta_0(ii); % set bound to param value
-        fprintf('Parameter %i perturbed past lower bound \n', ii);
-    end
-    
-end
+% %%% Comment out this section to not run
+% %%% All true params except group X; perturb group X 10% away from
+% %%% true values. 
+% truth_param = Nominal_param;
+% 
+% % change this to indicate how many groups are being perturbed; e.g. for G2G1, num_groups = 2
+% num_perturbedgroups = 2;  % for running V_sim_debug or perturbation analysis
+% 
+% % Perturb parameters of interest all at the beginning
+% % perturb_index = find(selection_vector(:,1)); % G1
+% perturb_index = find(selection_vector(:,end)); %G1 & G2
+% 
+% perturb_factor = 1.05;
+% theta_0(perturb_index) = perturb_factor*theta_0(perturb_index);
+% 
+% % Display Analysis Info
+% fprintf('Perturbation Analysis Experiment \n');
+% fprintf('Groups 1->%i \n',num_perturbedgroups); 
+% fprintf('Number of parameters: %i \n',length(perturb_index));
+% fprintf('Perturb Factor = %5.2f \n \n', perturb_factor);
+% 
+% % Overwrite the nominal values in the param struct w/ true values
+% p.D_s_n0 = theta_0(1); %[G2]
+% p.D_s_p0 = theta_0(2); %[G2]
+% p.R_s_n = theta_0(3); %[G1]
+% p.R_s_p = theta_0(4); %[G1]
+% % p.epsilon_s_n = theta_0(5); %  Equil. Struct
+% % p.epsilon_s_p = theta_0(6); %  Equil. Struct
+% p.sig_n = theta_0(7);
+% p.sig_p = theta_0(8);
+% p.ElecFactorD = theta_0(9); %[G2]
+% p.epsilon_e_n = theta_0(10); %[G2]
+% p.epsilon_e_s = theta_0(11);
+% p.epsilon_e_p = theta_0(12);
+% p.ElecFactorK = theta_0(13); %[G2]
+% p.t_plus = theta_0(14);
+% p.ElecFactorDA = theta_0(15); %[G2]
+% p.k_n0 = theta_0(16);
+% p.k_p0 = theta_0(17);
+% p.R_f_n = theta_0(18);
+% p.R_f_p = theta_0(19);
+% % p.n_Li_s = theta_0(20); %  Equil. Struct
+% p.c_e0 = theta_0(21);
+% p.E.Dsn = theta_0(22);
+% p.E.Dsp = theta_0(23);
+% p.E.kn = theta_0(24);
+% p.E.kp = theta_0(25);
+% 
+% %%% Update Dependencies
+% % Specific interfacial surface area
+% p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
+% p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
+% 
+% % make element to caclulate phi_{s} by Saehong Park 
+% p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
+% p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
+% 
+% % Check whether the perturbed value exceeds a pre-set bound (params_bounds)
+% % If so, then replace the bound with the initial value
+% for ii = 1:length(theta_0)  
+%     
+%     % Initial Value > Upper Bound
+%     if theta_0(ii) > bounds.max(ii)
+%         theta_0(ii) = bounds.max(ii); % set param value to bound
+% %         bounds.min(ii) = theta_0(ii); % set bound to param value
+%         fprintf('Parameter %i perturbed past upper bound \n', ii);
+%     end
+%     
+%     % Initial Value < Lower Bound
+%     if theta_0(ii) < bounds.min(ii)
+%         theta_0(ii) = bounds.min(ii); % set param value to bound
+% %         bounds.min(ii) = theta_0(ii); % set bound to param value
+%         fprintf('Parameter %i perturbed past lower bound \n', ii);
+%     end
+%     
+% end
 
 %% Call ParamID function
 
@@ -205,12 +206,13 @@ rmse_final = [];
 iter_history = [];
 theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting purposes (param_table_plotter)
 
+% Check 
 try
     for jj = 1:num_groups
         fprintf('Beginning Baseline %s, Group %s \n\n\n',baseline{1}(1:end-1),num2str(jj));
         
-        %% Change lambda depending on the group being identified (see note earlier about why)
-        LM_options.ctrl_lambda = ctrl_lambda(jj);
+%         %% Change lambda depending on the group being identified (see note earlier about why)
+%         LM_options.ctrl_lambda = ctrl_lambda(jj);
         
         %% Load Group Specific Inputs
         filename_input = filename_input_vector{jj};

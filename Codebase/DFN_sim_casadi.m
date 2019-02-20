@@ -775,7 +775,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 
             if v_sim(:,k+1) >= p.volt_max
 %                 error('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
-                fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
+                fprintf('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
     %             break;
             end
             

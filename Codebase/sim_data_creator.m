@@ -40,26 +40,36 @@ clc
 
 %%%% Baseline C: Collinearity + Sensitivity (2 Groups)
 % inputfinalpath = 'InputLibrary/Experimental/';
-inputfinalpath = 'InputLibrary/Experimental/4Groups/';
+inputfinalpath = 'InputLibrary/ValidationCycles/';
 inputrawpath = strcat(inputfinalpath,'Unformatted/');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/SensAnalysis/max_sens_experiments_Tmax60_trim.mat','results'); 
 % In experimental case, w/o results .mat file
-results.max_exp_num_sorted = [632;250;286;57;298;287;526;898;294;884;270;47;298];
+% results.max_exp_num_sorted = [632;250;286;57;298;287;526;898;294;884;270;47;298];
 % results.max_exp_num_sorted = [632;286;287;526;898;294;884;270;47];
+% Load sens files
+val_files = dir(inputrawpath);
+% on Mac, use line below to ignore '.','..', and '.DS_Store' files that
+% are loaded into r 
+val_files = val_files(~ismember({val_files.name},{'.','..','.DS_Store'}));
+Num_unique_inputs = length(val_files);
 
-
+for zz = 1:Num_unique_inputs
+    max_exp_num_unique{zz,1} = val_files(zz).name;
+end
+results.max_exp_num_sorted = max_exp_num_unique;
 % Set Number of Groups and params in each group
-Num_groups = 4; % desired number of param groups
-Group_size = [3;3;3;4]; % for each group, specify # params to identify
+Num_groups = 1; % desired number of param groups
+Group_size = [24]; % for each group, specify # params to identify
 
 % Create names for formatted inputs
-filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
-filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
-filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G3.mat');
-filename_input_vector{4} = strcat(inputfinalpath,'V_sim_G4.mat');
-filename_input_vector{5} = strcat(inputfinalpath,'V_sim_G2G1.mat');
-filename_input_vector{6} = strcat(inputfinalpath,'V_sim_G3G2G1.mat');
-filename_input_vector{7} = strcat(inputfinalpath,'V_sim_G4G3G2G1.mat');
+filename_input_vector{1} = strcat(inputfinalpath,'validation_cycles.mat');
+% filename_input_vector{1} = strcat(inputfinalpath,'V_sim_G1.mat');
+% filename_input_vector{2} = strcat(inputfinalpath,'V_sim_G2.mat');
+% filename_input_vector{3} = strcat(inputfinalpath,'V_sim_G3.mat');
+% filename_input_vector{4} = strcat(inputfinalpath,'V_sim_G4.mat');
+% filename_input_vector{5} = strcat(inputfinalpath,'V_sim_G2G1.mat');
+% filename_input_vector{6} = strcat(inputfinalpath,'V_sim_G3G2G1.mat');
+% filename_input_vector{7} = strcat(inputfinalpath,'V_sim_G4G3G2G1.mat');
 
 %%%%% Perturbation Case
 %%%%% Minus50
@@ -154,14 +164,16 @@ for mm = 1:Num_groups
 %         exp_num_track = vertcat(exp_num_track,max_exp_num(exp_idx));
 
         % Load experiment
-        exp_str = strcat(num2str(max_exp_num(exp_idx)),'.mat');
+%         exp_str = strcat(num2str(max_exp_num(exp_idx)),'.mat');
+        exp_str = max_exp_num{exp_idx};
+
 %         load(strcat(inputrawpath,exp_str),'Current_exp','Time_exp','V','alg_states','T_amb');
         load(strcat(inputrawpath,exp_str));
 
         % I, V, t
         Current_exp_cell = vertcat(Current_exp_cell,Current_exp);
         Time_exp_cell = vertcat(Time_exp_cell,Time_exp);
-        V_LM_CELL = vertcat(V_LM_CELL,V);
+        V_LM_CELL = vertcat(V_LM_CELL,Voltage_exp);
         Rc_exp_cell = vertcat(Rc_exp_cell,Rc);
 
         % algebraic states
@@ -176,14 +188,14 @@ for mm = 1:Num_groups
         T_amb_sim_cell = vertcat(T_amb_sim_cell,T_amb_sim(1));
         
         % exp number
-        exp_num_cell = vertcat(exp_num_cell,num2str(max_exp_num(exp_idx)));
+        exp_num_cell = vertcat(exp_num_cell,num2str(max_exp_num{exp_idx}));
         
         % Min V checking (issue that comes up during model-to-model comp)
         min_V = min(V_LM_CELL{end});
-        fprintf('Exp. %i has min V = %0.3f \n',max_exp_num(exp_idx),min_V);
+        fprintf('Exp. %s has min V = %0.3f \n',max_exp_num{exp_idx},min_V);
         
         max_V = max(V_LM_CELL{end});
-        fprintf('Exp. %i has max V = %0.3f \n',max_exp_num(exp_idx),max_V);
+        fprintf('Exp. %s has max V = %0.3f \n',max_exp_num{exp_idx},max_V);
         % Update exp_idx, used to keep track of which max_exp_num we're on
         exp_idx = exp_idx + 1;
     end
@@ -210,99 +222,99 @@ end
 
 %% Uncomment to create .mat files where groups are combined G2G1, G3G2G1...
 %%% Pulled from DFN_sim_main
-
-%%% Group 1 Input Data
-S1 = load(filename_input_vector{1});
-Current_exp_1 = S1.Current_exp;
-Time_exp_1 = S1.Time_exp;
-V_LM_CELL_1 = S1.V_LM_CELL;
-T_amb_sim_1 = S1.T_amb_sim;
-exp_num_1 = S1.exp_num;
-Rc_1 = S1.Rc;
-
+% 
+% %%% Group 1 Input Data
+% S1 = load(filename_input_vector{1});
+% Current_exp_1 = S1.Current_exp;
+% Time_exp_1 = S1.Time_exp;
+% V_LM_CELL_1 = S1.V_LM_CELL;
+% T_amb_sim_1 = S1.T_amb_sim;
+% exp_num_1 = S1.exp_num;
+% Rc_1 = S1.Rc;
+% 
+% % % If including algebraic states
+% % cssn_sim_1 = S1.cssn_sim;
+% % cssp_sim_1 = S1.cssp_sim;
+% % etan_sim_1 = S1.etan_sim;
+% % etap_sim_1 = S1.etap_sim;
+% % T1_sim_1 = S1.T1_sim;
+% % T2_sim_1 = S1.T2_sim;
+% 
+% %%% Group 2 Input Data
+% S2 = load(filename_input_vector{2});
+% Current_exp_2 = S2.Current_exp;
+% Time_exp_2 = S2.Time_exp;
+% V_LM_CELL_2 = S2.V_LM_CELL;
+% T_amb_sim_2 = S2.T_amb_sim;
+% exp_num_2 = S2.exp_num;
+% Rc_2 = S2.Rc;
+% 
+% % % If including algebraic states
+% % cssn_sim_2 = S2.cssn_sim;
+% % cssp_sim_2 = S2.cssp_sim;
+% % etan_sim_2 = S2.etan_sim;
+% % etap_sim_2 = S2.etap_sim;
+% % T1_sim_2 = S2.T1_sim;
+% % T2_sim_2 = S2.T2_sim;
+% 
+% 
+% %%% Group 3 Input Data
+% S3 = load(filename_input_vector{3});
+% Current_exp_3 = S3.Current_exp;
+% Time_exp_3 = S3.Time_exp;
+% V_LM_CELL_3 = S3.V_LM_CELL;
+% T_amb_sim_3 = S3.T_amb_sim;
+% exp_num_3 = S3.exp_num;
+% Rc_3 = S3.Rc;
+% 
+% 
+% %%% Group 4 Input Data
+% S4 = load(filename_input_vector{4});
+% Current_exp_4 = S4.Current_exp;
+% Time_exp_4 = S4.Time_exp;
+% V_LM_CELL_4 = S4.V_LM_CELL;
+% T_amb_sim_4 = S4.T_amb_sim;
+% exp_num_4 = S4.exp_num;
+% Rc_4 = S4.Rc;
+% 
+% %%% G2G1
+% Current_exp =  vertcat(Current_exp_2,Current_exp_1);
+% Time_exp =  vertcat(Time_exp_2,Time_exp_1);
+% V_LM_CELL = vertcat(V_LM_CELL_2,V_LM_CELL_1);
+% T_amb_sim = vertcat(T_amb_sim_2,T_amb_sim_1);
+% exp_num = vertcat(exp_num_2,exp_num_1);
+% Rc = vertcat(Rc_2,Rc_1);
+% 
 % % If including algebraic states
-% cssn_sim_1 = S1.cssn_sim;
-% cssp_sim_1 = S1.cssp_sim;
-% etan_sim_1 = S1.etan_sim;
-% etap_sim_1 = S1.etap_sim;
-% T1_sim_1 = S1.T1_sim;
-% T2_sim_1 = S1.T2_sim;
-
-%%% Group 2 Input Data
-S2 = load(filename_input_vector{2});
-Current_exp_2 = S2.Current_exp;
-Time_exp_2 = S2.Time_exp;
-V_LM_CELL_2 = S2.V_LM_CELL;
-T_amb_sim_2 = S2.T_amb_sim;
-exp_num_2 = S2.exp_num;
-Rc_2 = S2.Rc;
-
-% % If including algebraic states
-% cssn_sim_2 = S2.cssn_sim;
-% cssp_sim_2 = S2.cssp_sim;
-% etan_sim_2 = S2.etan_sim;
-% etap_sim_2 = S2.etap_sim;
-% T1_sim_2 = S2.T1_sim;
-% T2_sim_2 = S2.T2_sim;
-
-
-%%% Group 3 Input Data
-S3 = load(filename_input_vector{3});
-Current_exp_3 = S3.Current_exp;
-Time_exp_3 = S3.Time_exp;
-V_LM_CELL_3 = S3.V_LM_CELL;
-T_amb_sim_3 = S3.T_amb_sim;
-exp_num_3 = S3.exp_num;
-Rc_3 = S3.Rc;
-
-
-%%% Group 4 Input Data
-S4 = load(filename_input_vector{4});
-Current_exp_4 = S4.Current_exp;
-Time_exp_4 = S4.Time_exp;
-V_LM_CELL_4 = S4.V_LM_CELL;
-T_amb_sim_4 = S4.T_amb_sim;
-exp_num_4 = S4.exp_num;
-Rc_4 = S4.Rc;
-
-%%% G2G1
-Current_exp =  vertcat(Current_exp_2,Current_exp_1);
-Time_exp =  vertcat(Time_exp_2,Time_exp_1);
-V_LM_CELL = vertcat(V_LM_CELL_2,V_LM_CELL_1);
-T_amb_sim = vertcat(T_amb_sim_2,T_amb_sim_1);
-exp_num = vertcat(exp_num_2,exp_num_1);
-Rc = vertcat(Rc_2,Rc_1);
-
-% If including algebraic states
-% cssn_sim = vertcat(cssn_sim_2,cssn_sim_1);
-% cssp_sim = vertcat(cssp_sim_2,cssp_sim_1);
-% etan_sim = vertcat(etan_sim_2,etan_sim_1);
-% etap_sim = vertcat(etap_sim_2,etap_sim_1);
-% T1_sim = vertcat(T1_sim_2,T1_sim_1);
-% T2_sim = vertcat(T2_sim_2,T2_sim_1);
-
-save(filename_input_vector{5},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
-
-%%% G3G2G1
-Current_exp =  vertcat(Current_exp_3,Current_exp_2,Current_exp_1);
-Time_exp =  vertcat(Time_exp_3,Time_exp_2,Time_exp_1);
-V_LM_CELL = vertcat(V_LM_CELL_3,V_LM_CELL_2,V_LM_CELL_1);
-T_amb_sim = vertcat(T_amb_sim_3,T_amb_sim_2,T_amb_sim_1);
-exp_num = vertcat(exp_num_3,exp_num_2,exp_num_1);
-Rc = vertcat(Rc_3,Rc_2,Rc_1);
-
-save(filename_input_vector{6},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
-
-
-%%% G4G3G2G1
-Current_exp =  vertcat(Current_exp_4,Current_exp_3,Current_exp_2,Current_exp_1);
-Time_exp =  vertcat(Time_exp_4,Time_exp_3,Time_exp_2,Time_exp_1);
-V_LM_CELL = vertcat(V_LM_CELL_4,V_LM_CELL_3,V_LM_CELL_2,V_LM_CELL_1);
-T_amb_sim = vertcat(T_amb_sim_4,T_amb_sim_3,T_amb_sim_2,T_amb_sim_1);
-exp_num = vertcat(exp_num_4,exp_num_3,exp_num_2,exp_num_1);
-Rc = vertcat(Rc_4,Rc_3,Rc_2,Rc_1);
-
-save(filename_input_vector{7},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
-
-% save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num')
-% save(filename_input_vector{3},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+% % cssn_sim = vertcat(cssn_sim_2,cssn_sim_1);
+% % cssp_sim = vertcat(cssp_sim_2,cssp_sim_1);
+% % etan_sim = vertcat(etan_sim_2,etan_sim_1);
+% % etap_sim = vertcat(etap_sim_2,etap_sim_1);
+% % T1_sim = vertcat(T1_sim_2,T1_sim_1);
+% % T2_sim = vertcat(T2_sim_2,T2_sim_1);
+% 
+% save(filename_input_vector{5},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+% 
+% %%% G3G2G1
+% Current_exp =  vertcat(Current_exp_3,Current_exp_2,Current_exp_1);
+% Time_exp =  vertcat(Time_exp_3,Time_exp_2,Time_exp_1);
+% V_LM_CELL = vertcat(V_LM_CELL_3,V_LM_CELL_2,V_LM_CELL_1);
+% T_amb_sim = vertcat(T_amb_sim_3,T_amb_sim_2,T_amb_sim_1);
+% exp_num = vertcat(exp_num_3,exp_num_2,exp_num_1);
+% Rc = vertcat(Rc_3,Rc_2,Rc_1);
+% 
+% save(filename_input_vector{6},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+% 
+% 
+% %%% G4G3G2G1
+% Current_exp =  vertcat(Current_exp_4,Current_exp_3,Current_exp_2,Current_exp_1);
+% Time_exp =  vertcat(Time_exp_4,Time_exp_3,Time_exp_2,Time_exp_1);
+% V_LM_CELL = vertcat(V_LM_CELL_4,V_LM_CELL_3,V_LM_CELL_2,V_LM_CELL_1);
+% T_amb_sim = vertcat(T_amb_sim_4,T_amb_sim_3,T_amb_sim_2,T_amb_sim_1);
+% exp_num = vertcat(exp_num_4,exp_num_3,exp_num_2,exp_num_1);
+% Rc = vertcat(Rc_4,Rc_3,Rc_2,Rc_1);
+% 
+% save(filename_input_vector{7},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');
+% 
+% % save(filename_input_vector{3},'Current_exp','Time_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim','T1_sim','T2_sim','T_amb_sim','exp_num')
+% % save(filename_input_vector{3},'Time_exp','Current_exp','V_LM_CELL','T_amb_sim','exp_num','Rc');

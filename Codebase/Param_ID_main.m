@@ -21,8 +21,6 @@ chi_sq_Abs_exit_thresh = 1e-4; % Absolute cost function tolerance (Func Absolute
 
 LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh, chi_sq_Abs_exit_thresh];
 LM_options.maxIter = 20;
-
-% ZTG Note: Tends to be instability when starting group 2; i.e. big parameter estimates cause CasADi errors; try being more conservative initially when starting group 2 
 LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
 % ctrl_lambda = [1e-2;1e-2];
 
@@ -73,7 +71,7 @@ theta_0 = Nominal_param;
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/BaselineA/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/BaselineB/');
 % input_folder = strcat('InputLibrary/ValidationCycles/');
@@ -84,7 +82,7 @@ input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 % output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path
@@ -105,6 +103,7 @@ diary(error_filename)
 datetime_initial
 fprintf('Initial Conditions: %s \n',init_cond);
 fprintf('Baseline: %s \n \n',baseline{1});
+fprintf('Number of Groups: %i \n \n',num_groups);
 disp('Levenberg-Marquardt Params')
 fprintf('Initial Lambda: %5.2e \n',LM_options.ctrl_lambda);
 fprintf('Param Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(1));
@@ -206,7 +205,6 @@ rmse_final = [];
 iter_history = [];
 theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting purposes (param_table_plotter)
 
-% Check 
 try
     for jj = 1:num_groups
         fprintf('Beginning Baseline %s, Group %s \n\n\n',baseline{1}(1:end-1),num2str(jj));

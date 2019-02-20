@@ -21,13 +21,25 @@ close all
 clc
 
 %% Load Input
-load('InputLibrary/ValidationCycles/ModCDUDDSx2.mat')
-T_amb_sim = 25;
-V_LM_CELL = Voltage_exp;
+Inputs = load('InputLibrary/ValidationCycles/validation_cycles.mat');
+% T_amb_sim = 25;
+Current_exp = Inputs.Current_exp;
+Time_exp = Inputs.Time_exp;
+V_LM_CELL = Inputs.V_LM_CELL;
+T_amb_sim = Inputs.T_amb_sim; % note comes in celcius
+exp_num = Inputs.exp_num;
 
-Num_inputs = length(Current_exp);
-exp_num = 'UDDS_val';
+Num_inputs = length(V_LM_CELL);
 
+% In experimental ID, Rc needs to be identified for each experiment
+% (Rc_tune) and the Rc value must be attached to each profile
+if isfield(Inputs,'Rc')
+    Rc = Inputs.Rc;
+else %M2M case
+    Rc = cell(length(Current_exp),1); % Create a cell num_exp x 1
+    Rc(:,1) = {p.R_c}; % For M2M case, just use nominal Rc value 
+end
+    
 %% Load Parameters
 run param/params_NCA % loads p struct
 
@@ -280,12 +292,9 @@ SensFlag = 0; %Turn sensitivity calculation off or on
 SensSelec = selection_vector;
 sel_k = find(SensSelec);
 Selected_params = theta_0(sel_k);
-Rc = p.R_c;
 
-[V_LM_CELL_sim,~] = DFN_sim_casadi(p, exp_num, Current_exp, Time_exp, V_LM_CELL, T_amb_sim, SensSelec, Selected_params, SensFlag,Rc); % SensFlag == 0
-
-%parfor idx = 1:Num_inputs
-for idx = 1:Num_inputs
+parfor idx = 1:Num_inputs
+% for idx = 1:Num_inputs
 %     V_LM_CELL{idx} =  DFN_sim_noRc_ZTG(Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params); %, Rc_exp{idx});
 %    V_true{idx} = DFN_sim_noRc(Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx},SensSelec,Selected_params);
 
@@ -309,7 +318,7 @@ end
 % alg_states.cssp_sim = cssp_sim;
 % alg_states.etan_sim = etan_sim;
 % alg_states.etap_sim = etap_sim;
-save('Optimal_exp_check.mat','V_LM_CELL_sim','Current_exp','Time_exp','V_LM_CELL','exp_num');
+save('validation_results.mat','V_LM_CELL_sim','Current_exp','Time_exp','V_LM_CELL','exp_num');
 
 % save('V_sim_G2G1.mat','exp_num','Time_exp','T_amb_sim','T1_sim','T2_sim','Current_exp','V_LM_CELL','cssn_sim','cssp_sim','etan_sim','etap_sim');
 

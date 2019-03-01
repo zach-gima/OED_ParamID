@@ -22,7 +22,6 @@ chi_sq_Abs_exit_thresh = 1e-4; % Absolute cost function tolerance (Func Absolute
 LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh, chi_sq_Abs_exit_thresh];
 LM_options.maxIter = 20;
 LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
-% ctrl_lambda = [1e-2;1e-2];
 
 %%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
 % % Baseline A: Full Parameter Set (1 Group)
@@ -35,43 +34,20 @@ LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); s
 
 % Baseline C: Collinearity + Sensitivity (2 Groups)
 baseline = {'OED_'};
-% num_groups = 2; % Number of parameter groups
-num_groups = 4; % Number of parameter groups
+num_groups = 2; % Number of parameter groups
 
 % % Experimental ParamID (Pre-Q Inclusion)
 % baseline = {'OED_EXP_'};
 % num_groups = 3; % Number of parameter groups G1(easy) G1&G2(easy) G1&G2(all)
 
 %%%%%%%%%%%%%%%   Parameter Initial Conditions (Uncomment to select)   %%%%%%%%%%%%%%%
-% (1) Theta_0 = True parameter values ID'ed by SHP in Bosch Year 1 (NCA)
-%%% Note: will need to use sensitivity vector = all parameters for sens_lm
-%%% to simulate voltage with all of the true params.
-
-% init_cond = 'true';
-% theta_0 = truth_param;
-
-% (2) Theta_0 = Nominal_param from literature; Used in Bosch Year 1 (NCA)
-
 run param/params_nominal
 init_cond = 'nom';
 theta_0 = Nominal_param;
 
-% (3) Theta_0 = param lower bound
-% Initialize close to but not at the bound
-
-% init_cond = 'lb';
-% theta_0 = param_min*1.25;
-
-% (4) Theta_0 = param upper bound
-% Initialize close to but not at the bound
-
-% init_cond = 'ub';
-% theta_0 = param_max*0.50;
-
-
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-% input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
+input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/BaselineA/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/BaselineB/');
 % input_folder = strcat('InputLibrary/ValidationCycles/');
@@ -82,13 +58,12 @@ theta_0 = Nominal_param;
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 % output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path
 
 mkdir(output_folder); %create new subfolder with current date in output_folder
-% output_folder = strcat(io_folder,'ID_results/',strrep(datestr(datetime_initial), ':', '_'),'/'); %rename output folder with newly created subfolder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
 [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
@@ -250,10 +225,6 @@ try
         % Save data & send email
         save(filename_output,'paramID_out','rmse_final','datetime_initial','datetime_paramID',...
         'truth_param','theta_0_true','LM_options','sel_k','selection_vector','bounds','ci95_full','t_paramID','output_folder');
-
-        % consider deleting data from previous L-M iterations
-        % LM_filename_output = strcat(filename_output(1:end-4),'_iter_');
-        % delete LM_filename_output*
         
         % matlabmail(recipient,subject,message,attachments)
         matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);

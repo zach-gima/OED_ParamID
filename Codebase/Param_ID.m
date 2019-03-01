@@ -81,7 +81,6 @@ function [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vecto
 
     % Sens -> LM variables
     y_sim = V_LM;
-    %J_LM = (normalized_sens_bar)'.*S_LM; % Infeasible for Savio
     J_LM = bsxfun(@times,normalized_sens_bar',S_LM);
     fprintf('Determinant of information matrix(normalized): %e \n',det(J_LM'*J_LM));
 

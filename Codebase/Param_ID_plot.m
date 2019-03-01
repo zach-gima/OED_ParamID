@@ -4,13 +4,7 @@
 % newer; issue w/ errorbar class
 
 function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_paramID,rmse_final,output_folder,LM_options,bounds,alg_states,selection_vector)
-    % Set selection vector (in the future just save to results .mat file and
-    % read in)
-    %%%% MAKE SURE CONSISTENT w/ selection_vector set in init_ParamID.m
-%     selection_vector = zeros(25,2);
-%     selection_vector(:,1) = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; %G1
-%     selection_vector(:,2) = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; %G2
-%     
+
     % Parse L-M Conditions
     param_exit_thresh = LM_options.exit_cond(1);
     chi_sq_exit_thresh = LM_options.exit_cond(2);
@@ -143,7 +137,8 @@ function Param_ID_plot(truth_param,theta_0_true,sel_k,paramID_out,ci95_full,t_pa
     figure('Position', [100 100 900 700])
     t = 1:length(paramID_out.y_dat);
     plot(t,paramID_out.y_dat,t,paramID_out.save_y_sim(:,end),'LineWidth',2)
-    legend('DFN','Identified Params')
+%     legend('DFN','Identified Params')
+    legend('Experimental Data','Identified Params')
     xlabel('Time (s)','Fontsize',fs)
     ylabel('Voltage (V)','Fontsize',fs)
     title('Voltage Fit')

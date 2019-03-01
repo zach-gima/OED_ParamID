@@ -206,6 +206,8 @@ num_exp = length(sens_files);
 
 % [STSnorm,Sens_Mag,sens,NT_mat,exp_ind] = find_admissable_experiment_sets(p,params,removed,Np,senspath,num_exp,sens_files,bounds,output_folder);
 
+%%% Once find_admissable_experiment_sets has been run and has generated the
+%%% exp_info.mat file, can just load here
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax45.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 % load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
 load('/Users/ztakeo/Documents/GitHub/OED_ParamID/SensResults/exp_info_Tmax60_trim.mat','STSnorm','Sens_Mag','sens','NT_mat','exp_ind');
@@ -223,10 +225,6 @@ for pp = 1:length(removed)
     fprintf('%s \n', params{removed(pp)});
 end
 fprintf('\n');
-
-% params_reduced(removed) = []; % for tracking purposes, remove clustered params from params cell
-
-
 
 %% Remove parameters according to sensitivity threshold 
 

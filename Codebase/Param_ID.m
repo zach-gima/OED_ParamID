@@ -98,15 +98,17 @@ for LM_Iter=1:maxIter
             theta_prev = theta;
             theta = theta + delta_theta;
             
-            %Check that the normalization is correct
+            %Check that the normalization is correct - Dylan/Zach
             
             btrk = false;
         catch
-            %implemet logic for when casadi fails
+            %implemet logic for when casadi fails - Dylan/Zach
         end
         
         
     end
+    
+    %imput exit conditions - Dylan/Zach
 
     
     

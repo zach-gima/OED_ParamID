@@ -132,7 +132,20 @@ function [filename_input_vector,filename_output_vector,selection_vector,ci_selec
             ci_input_vector{2} = strcat(input_folder,'V_sim_G2.mat');
             ci_input_vector{3} = strcat(input_folder,'V_sim_G3.mat');
             ci_input_vector{4} = strcat(input_folder,'V_sim_G4.mat');
+        elseif num_groups == 1
+            %Set input filename
+            filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
 
+            %Set output filename
+            filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_',init_cond,'.mat');
+
+            %Set selection vector
+            selection_vector(:,1) = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
+
+            %Set confidence interval input and parameters
+            ci_select{1} = find(selection_vector(:,1));
+            ci_input_vector{1} = filename_input_vector{1};
+            
         else
             error('Have not defined logic for this number of groups yet.');
         end

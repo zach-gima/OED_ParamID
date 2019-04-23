@@ -16,12 +16,12 @@ run param/params_truth % loads truth_param array
 
 % Set Levenberg-Marquardt Conditions
 param_exit_thresh = 1e-3; % 1e-6 default values used in matlab (called StepTol)
-chi_sq_exit_thresh = 1e-6; % 1e-6 default values used in matlab (called FuncTol)
-chi_sq_Abs_exit_thresh = 1e-4; % Absolute cost function tolerance (Func Absolute Tol)
+chi_sq_rel_thresh = 1e-4; % 1e-6 default values used in matlab (called FuncTol)
+chi_sq_abs_thresh = 1e-4; % Absolute cost function tolerance (Func Absolute Tol)
 
-LM_options.exit_cond = [param_exit_thresh, chi_sq_exit_thresh, chi_sq_Abs_exit_thresh];
-LM_options.maxIter = 20;
-LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
+SCD_options.exit_cond = [param_exit_thresh, chi_sq_rel_thresh, chi_sq_abs_thresh];
+SCD_options.maxIter = 100;
+% LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); smaller = more optimistic and bigger initial steps -- SHP used 100 in yr 1
 
 %%%%%%%%%%%%%%%   ParamID baseline (Uncomment to select)   %%%%%%%%%%%%%%%
 % % Baseline A: Full Parameter Set (1 Group)
@@ -34,7 +34,7 @@ LM_options.ctrl_lambda = 100; %1e-2; % initial lambda value (design variable); s
 
 % Baseline C: Collinearity + Sensitivity (2 Groups)
 baseline = {'OED_'};
-num_groups = 2; % Number of parameter groups
+num_groups = 1; % Number of parameter groups
 
 % % Experimental ParamID (Pre-Q Inclusion)
 % baseline = {'OED_EXP_'};
@@ -47,11 +47,11 @@ theta_0 = Nominal_param;
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
+% input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/BaselineA/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/BaselineB/');
 % input_folder = strcat('InputLibrary/ValidationCycles/');
-% input_folder = strcat('InputLibrary/Experimental/');
+input_folder = strcat('InputLibrary/Experimental/');
 
 % input_folder = strcat('InputLibrary/MaxSensInputs/plus50/');
 % input_folder = strcat('InputLibrary/MaxSensInputs/minus50/');
@@ -79,13 +79,13 @@ datetime_initial
 fprintf('Initial Conditions: %s \n',init_cond);
 fprintf('Baseline: %s \n \n',baseline{1});
 fprintf('Number of Groups: %i \n \n',num_groups);
-disp('Levenberg-Marquardt Params')
-fprintf('Initial Lambda: %5.2e \n',LM_options.ctrl_lambda);
-fprintf('Param Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(1));
-fprintf('Cost Function Rel. Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(2));
-fprintf('Cost Function Abs. Convergence Exit Condition: %5.2e \n',LM_options.exit_cond(3));
+disp('SCD Params')
+% fprintf('Initial Lambda: %5.2e \n',SCD_options.ctrl_lambda);
+fprintf('Param Convergence Exit Condition: %5.2e \n',SCD_options.exit_cond(1));
+fprintf('Cost Function Rel. Convergence Exit Condition: %5.2e \n',SCD_options.exit_cond(2));
+fprintf('Cost Function Abs. Convergence Exit Condition: %5.2e \n',SCD_options.exit_cond(3));
 
-fprintf('Max Iterations: %i \n \n',LM_options.maxIter);
+fprintf('Max Iterations: %i \n \n',SCD_options.maxIter);
 
 %% Perturbation Analysis %%%%%%%%%
 % %%% Comment out this section to not run
@@ -201,7 +201,7 @@ try
 
         % Prev. had outputs [LM_Iter,paramID_out], which are now just
         % global variables. See note at beginning of script
-        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector(:,jj),theta_0,Inputs,filename_output,LM_options); 
+        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector(:,jj),theta_0,Inputs,filename_output,SCD_options); 
 
         % Save time it took to identify each parameter group
         datetime_paramID{jj} = datetime('now','TimeZone','local')

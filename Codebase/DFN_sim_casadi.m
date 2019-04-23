@@ -654,7 +654,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 
     x_sim(:,1) = x0;
     z_sim(:,1) = z0;
-    v_sim(:,1) = V0;
+    v_sim(1) = V0;
 
     % [SHP Change]
     % save x
@@ -706,7 +706,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     try
         for k=1:(NT-1)
             if (mod(k,500) == 0)
-                fprintf('Iter:%d, v_sim: %f\n',k,v_sim(:,k));
+                fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
             end
 
             Cur = I(k+1);
@@ -715,7 +715,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             Fk = F('x0',x_sim(:,k),'z0',z_sim(:,k),'p',[park0;Cur]);
             x_sim(:,k+1) = full(Fk.xf);
             z_sim(:,k+1) = full(Fk.zf);
-            v_sim(:,k+1) = full(Fk.qf)/p.delta_t;
+            v_sim(k+1) = full(Fk.qf)/p.delta_t;
 
             f0 = full(f_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
             g0 = full(g_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
@@ -768,13 +768,13 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             % Step SOC forward
             SOC(k+1) = (mean(c_avg_n(:,k+1)) - cn_low) / (cn_high - cn_low);
 
-            if v_sim(:,k+1) <= p.volt_min
+            if v_sim(k+1) <= p.volt_min
 %                 error('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
                 fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
     %             break;
             end
 
-            if v_sim(:,k+1) >= p.volt_max
+            if v_sim(k+1) >= p.volt_max
 %                 error('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
                 fprintf('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
     %             break;
@@ -839,8 +839,10 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
         end
     catch e %e is an MException struct
     % An error will put you here.
+        v_sim(k:NT-1) = v_sim(k-1);
         save('casadi_debug','x_sim','z_sim','v_sim');
         fprintf('CasADi error for Exp %s at timestep %d: \n',exp_num,k);
+        fprintf('Appending last properly simulated voltage value \n')
         errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
     end
 end

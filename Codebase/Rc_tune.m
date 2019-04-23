@@ -81,18 +81,18 @@ for ii = 1:Num_unique_inputs
     % Simulate voltage response with nominal Rc value
     [V_LM_CELL_sim{ii},~] = DFN_sim_casadi(p, max_exp_num_unique{ii}, Current_exp(1:30), Time_exp(1:30), V_LM_CELL(1:30), T_amb_sim(1:30), SensSelec, Selected_params, SensFlag,Rc_initial); % SensFlag == 0
 
-    % Plot before adjustment
-%     figure('Position', [100 100 900 700])
-%     hold on
-% 
-%     plot(Time_exp(1:30),V_LM_CELL(1:30))
-%     plot(Time_exp(1:30),V_LM_CELL_sim{ii})
-%     legend('Experimental','Simulated')
-%     xlabel('Time (s)')
-%     ylabel('Voltage (V)')
-%     title('Before RC ID')
-%     set(gca,'Fontsize',fs);
-%     hold off
+%     Plot before adjustment
+    figure('Position', [100 100 900 700])
+    hold on
+
+    plot(Time_exp(1:30),V_LM_CELL(1:30))
+    plot(Time_exp(1:30),V_LM_CELL_sim{ii})
+    legend('Experimental','Simulated')
+    xlabel('Time (s)')
+    ylabel('Voltage (V)')
+    title('Before RC ID')
+    set(gca,'Fontsize',fs);
+    hold off
     
     % adjust Rc w/ Ohm's law and algebra 
     % Testing Profiles have 10s of 0 current, then the current profile
@@ -106,20 +106,20 @@ for ii = 1:Num_unique_inputs
     [V_LM_CELL_sim{ii},~] = DFN_sim_casadi(p, max_exp_num_unique{ii}, Current_exp(1:30), Time_exp(1:30), V_LM_CELL(1:30), T_amb_sim(1:30), SensSelec, Selected_params, SensFlag,Rc_ID{ii,2}); % SensFlag == 0
     v_drop_norm(ii) = norm(V_LM_CELL_sim{ii} - V_LM_CELL(1:30)); % calculate RMSE of drop for sanity check
     
-    % Plot after adjustment
-%     figure('Position', [100 100 900 700])
-%     hold on
-%     
-%     plot(Time_exp(1:30),V_LM_CELL(1:30))
-%     plot(Time_exp(1:30),V_LM_CELL_sim{ii})   
-%     legend('Experimental','Simulated')
-%     title('After RC ID')
-%     xlabel('Time (s)')
-%     ylabel('Voltage (V)')
-%     set(gca,'Fontsize',fs);
-%     hold off
+%     Plot after adjustment
+    figure('Position', [100 100 900 700])
+    hold on
     
-%     close all
+    plot(Time_exp(1:30),V_LM_CELL(1:30))
+    plot(Time_exp(1:30),V_LM_CELL_sim{ii})   
+    legend('Experimental','Simulated')
+    title('After RC ID')
+    xlabel('Time (s)')
+    ylabel('Voltage (V)')
+    set(gca,'Fontsize',fs);
+    hold off
+    
+    close all
     
     Rc = Rc_ID{ii,2};
     

@@ -73,7 +73,8 @@ while exit_logic == false
         try
             V_CELL = cell(num_inputs,1);
             S_CELL = cell(num_inputs,1);
-            parfor idx = 1:num_inputs
+%             parfor idx = 1:num_inputs
+            for idx = 1:num_inputs
                 [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
                     exp_num{idx},Current_exp{idx}, Time_exp{idx}, ...
                     Voltage_exp{idx}, T_amb{idx}, e_idx, theta, 1,Rc{idx});

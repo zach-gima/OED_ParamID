@@ -401,7 +401,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     % Assign nominal sensitivity values
     park0 = zeros(length(sel_k),1);
     for i=1:length(sel_k)
-        park0_tmp = SelecParam(i); % assign nominal values
+        park0_tmp = SelecParam(sel_k(i)); % assign nominal values
         park0(i,1) = park0_tmp;
     end
 
@@ -703,7 +703,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 %     disp('Running')
     
     % Simulate DFN & Sensitivity Equations
-    try
+%     try
         for k=1:(NT-1)
             if (mod(k,500) == 0)
                 fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
@@ -837,13 +837,13 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             S = S3_sim;
             varargout{1} = S;
         end
-    catch e %e is an MException struct
-    % An error will put you here.
-        v_sim(k:NT-1) = v_sim(k-1);
-        save('casadi_debug','x_sim','z_sim','v_sim');
-        fprintf('CasADi error for Exp %s at timestep %d: \n',exp_num,k);
-        fprintf('Appending last properly simulated voltage value \n')
-        errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
-    end
+%     catch e %e is an MException struct
+%     % An error will put you here.
+%         v_sim(k:NT-1) = v_sim(k-1);
+%         save('casadi_debug','x_sim','z_sim','v_sim');
+%         fprintf('CasADi error for Exp %s at timestep %d: \n',exp_num,k);
+%         fprintf('Appending last properly simulated voltage value \n')
+%         errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
+%     end
 end
 

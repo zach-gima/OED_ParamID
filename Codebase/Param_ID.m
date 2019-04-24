@@ -11,12 +11,6 @@ function [park0, paramID_out, Iter] = Param_ID(p,bounds,sel_k,selection_vector,t
 %selection vector: a vector of length(Num of paremeters total) that is 1 in
 %the correspoinding index if that parameter is identified and zero if not
 
-%% Setup Parameter Variables
-
-% Setup vectors related to parameter sensitivity selection
-Selected_params = theta_0(sel_k);  % Goes from 21x1 vector to 18x1 (in all params selected scenario)
-
-
 %% Load Input and Set Variables
 
 Current_exp = Inputs.Current_exp;
@@ -25,8 +19,10 @@ Voltage_exp = Inputs.V_LM_CELL;
 T_amb = Inputs.T_amb_sim; % note, comes in celcius
 exp_num = Inputs.exp_num;
 
-num_inputs = length(Voltage_exp);
-v_dat = cell2mat(Voltage_exp); % Truth/experimental data
+% num_inputs = length(Voltage_exp);
+num_inputs = 1;
+% v_dat = cell2mat(Voltage_exp); % Truth/experimental data
+v_dat = Voltage_exp{1}(1:50);
 total_NT  = size(v_dat,1);
 
 % In experimental ID, Rc needs to be identified for each experiment
@@ -38,30 +34,24 @@ else %M2M case
     Rc(:,1) = {p.R_c}; % For M2M case, just use nominal Rc value
 end
 
-
-%% Normalization
-
-normalized_theta_bar = origin_to_norm('param',Selected_params,bounds,selection_vector);
-
-Min_theta_bar = zeros(25,1); % Year 2: Total # possible parameters = 25 (22 + 3 eq. struct)
-Max_theta_bar = ones(25,1); % Year 2: Total # possible parameters = 25 (22 + 3 eq. struct)
-normalize_params_min = Min_theta_bar(sel_k);
-normalize_params_max = Max_theta_bar(sel_k);
-
-normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
-
 %% SCM
 groupsize = 1;
 theta = theta_0;
 Jac = 0;
 exit_logic = false;
+delta_theta_history = ones(25,1);
+delta_theta_history([5 6 20]) = 0; % set eq. param indices to 0
+% DEBUG
+plot(v_dat)
+hold on
 
 while exit_logic == false
     % Reset alpha 
-    alpha = 1e-3;
+    alpha = 1e5;
 
     %Sample with replacement
-    rand_idx = sel_k(randsample(sum(selection_vector),groupsize))
+%     rand_idx = sel_k(randsample(sum(selection_vector),groupsize)) 
+    rand_idx = 1;
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx) = 1;
     
@@ -71,39 +61,64 @@ while exit_logic == false
     btrk = true;
     while btrk
         try
+%             p = update_p(p,theta); --- Dylan
+            
             V_CELL = cell(num_inputs,1);
             S_CELL = cell(num_inputs,1);
+            
 %             parfor idx = 1:num_inputs
             for idx = 1:num_inputs
                 [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
-                    exp_num{idx},Current_exp{idx}, Time_exp{idx}, ...
-                    Voltage_exp{idx}, T_amb{idx}, e_idx, theta, 1,Rc{idx});
+                    exp_num{idx},Current_exp{idx}(1:50), Time_exp{idx}(1:50), ...
+                    Voltage_exp{idx}(1:50), T_amb{idx}, e_idx, theta, 1,Rc{idx});
             end
             v_sim = cell2mat(V_CELL);
             Sens = cell2mat(S_CELL);
-            Jac = bsxfun(@times,normalized_sens_bar',Sens);
+            
+            
+            % DEBUG
+            plot(v_sim) 
+            drawnow
+            
+            % Normalize Sensitivity
+            Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
+            normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
+            Jac = bsxfun(@times,normalized_sens_bar(rand_idx),Sens);
             
             % Update / increase alpha?            
-            delta_theta = - alpha*(Jac')*(v_dat - v_sim);
-            theta_prev = theta;
-            theta = theta + delta_theta;
+            delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
+            delta_theta_history(rand_idx) = delta_theta;
             
-            %Check that the normalization is correct - Dylan/Zach
+            % Parameter Normalization -- NOTE: NEEDS TESTING
+            theta_prev = theta; % NOTE: UN-NORMALIZED
+            theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
+            theta_norm(rand_idx) = theta_norm(rand_idx) + delta_theta;
+            theta_norm(rand_idx) = min(max(0,theta_norm(rand_idx)),1); % min max routine prevents parameter value from violating bounds
+            
+            theta = norm_to_origin(theta_norm,bounds,selection_vector); 
+            
             btrk = false;
             
-        catch % logic for when casadi fails
-            % Propose a smaller parameter step
-            alpha = alpha/100;
-            delta_theta = - alpha*(Jac')*(v_dat - v_sim);
-            theta = theta_prev + delta_theta;
+        catch e % logic for when casadi fails %TEST THIS
+            % An error will put you here.
+            errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
             
+            % Propose a smaller parameter step
+            alpha = alpha/100; % NOTE: NEEDS TESTING
+            delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
+            
+            % Parameter Normalization -- NOTE: NEEDS TESTING
+            theta_norm = origin_to_norm('param',theta_prev,bounds,selection_vector);
+            theta_norm(rand_idx) = theta_prev(rand_idx) + delta_theta;
+            theta_norm(rand_idx) = min(max(0,theta_norm(rand_idx)),1); % min max routine prevents parameter value from violating bounds
+            theta = norm_to_origin(theta_norm,bounds,selection_vector); 
         end
         
         
     end
     
     % Check Exit Conditions
-    [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options);
+%     [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options);
     
     % Save ParamID results every iteration
     %     paramID_out.Time_exp = Time_exp;
@@ -125,6 +140,9 @@ while exit_logic == false
     %     paramID_out.LM_logic = LM_logic;
     
     %     save(strcat(LM_filename_output,num2str(LM_Iter),'.mat'),'park0','paramID_out','LM_Iter');
+    cost = sum(abs(v_dat - v_sim));
+    fprintf('Cost: %1.6f \n',cost);
+    
 end
 
 disp('After estimation')

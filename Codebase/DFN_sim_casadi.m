@@ -705,6 +705,9 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     % Simulate DFN & Sensitivity Equations
 %     try
         for k=1:(NT-1)
+            if k == 20
+                fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
+            end
             if (mod(k,500) == 0)
                 fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
             end

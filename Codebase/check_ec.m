@@ -1,6 +1,10 @@
 % function for checking parameter identification routine exit conditions
 function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
 
+    %%%% NOTE:
+    %%%%%%%%%%%%%%%%%%%%% ZTG ADJUST THIS FUNCTION %%%%%%%%%%%%%%%%%%%%% 
+    %%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%% 
+    
     % Parse Optimization Routine options
     maxIter = SCD_options.maxIter;
 
@@ -8,15 +12,17 @@ function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
     param_exit_thresh = SCD_options.param_exit_thresh;
     chi_sq_rel_thresh = SCD_options.chi_sq_rel_thresh;
     chi_sq_abs_thresh = SCD_options.chi_sq_abs_thresh;
+    
     % Compute exit condition-relevant metrics
     y_minus_yfit = v_dat - v_sim;
     
     % Save Various Metrics & Exit Criteria
 %     save_RMSE = rmse(v_dat,v_sim);
+    W = 1;
     chi_sq = (y_minus_yfit)'*W*(y_minus_yfit);
     
     param_exit = max(abs(delta_theta)); % Convergence in the parameter estimates
-    chi_sq_RelTol = abs((chi_sq - chi_sq(Iter-1)))/  chi_sq(Iter-1); % Rel. Tol for Cost Function
+%     chi_sq_RelTol = abs((chi_sq - chi_sq(Iter-1)))/  chi_sq(Iter-1); % Rel. Tol for Cost Function
     chi_sq_AbsTol = abs(chi_sq - chi_sq(Iter-1)); % Abs. Tol for Cost Function
  
     % Display info.

@@ -36,7 +36,7 @@ end
 
 %% SCM
 groupsize = 1;
-theta = theta_0+100;
+theta = theta_0;
 Jac = 0;
 exit_logic = false;
 delta_theta_history = ones(25,1);
@@ -51,9 +51,10 @@ while exit_logic == false
 
     %Sample with replacement
 %     rand_idx = sel_k(randsample(sum(selection_vector),groupsize)) 
-    rand_idx = 1;
+    rand_idx25 = 25;
+    rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
-    e_idx(rand_idx) = 1;
+    e_idx(rand_idx25) = 1;
     
     %Sample without replacement
     %sel_k = ...randsample
@@ -83,17 +84,17 @@ while exit_logic == false
             % Normalize Sensitivity
             Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
             normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
-            Jac = bsxfun(@times,normalized_sens_bar(rand_idx),Sens);
+            Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
             
             % Update / increase alpha?            
             delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
-            delta_theta_history(rand_idx) = delta_theta;
+            delta_theta_history(rand_idx25) = delta_theta;
             
             % Parameter Normalization -- NOTE: NEEDS TESTING
             theta_prev = theta; % NOTE: UN-NORMALIZED
             theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
-            theta_norm(rand_idx) = theta_norm(rand_idx) + delta_theta;
-            theta_norm(rand_idx) = min(max(0,theta_norm(rand_idx)),1); % min max routine prevents parameter value from violating bounds
+            theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
+            theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
             
             theta = norm_to_origin(theta_norm,bounds,selection_vector); 
             
@@ -104,13 +105,13 @@ while exit_logic == false
             errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
             
             % Propose a smaller parameter step
-            alpha = alpha/100; % NOTE: NEEDS TESTING
+            alpha = alpha/2; % NOTE: NEEDS TESTING
             delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
             
             % Parameter Normalization -- NOTE: NEEDS TESTING
             theta_norm = origin_to_norm('param',theta_prev,bounds,selection_vector);
-            theta_norm(rand_idx) = theta_prev(rand_idx) + delta_theta;
-            theta_norm(rand_idx) = min(max(0,theta_norm(rand_idx)),1); % min max routine prevents parameter value from violating bounds
+            theta_norm(rand_idx22) = theta_prev(rand_idx25) + delta_theta;
+            theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
             theta = norm_to_origin(theta_norm,bounds,selection_vector); 
         end
         

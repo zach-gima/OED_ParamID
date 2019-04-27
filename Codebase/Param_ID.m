@@ -36,7 +36,7 @@ end
 
 %% SCM
 groupsize = 1;
-theta = theta_0;
+theta = theta_0+100;
 Jac = 0;
 exit_logic = false;
 delta_theta_history = ones(25,1);

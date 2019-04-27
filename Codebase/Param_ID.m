@@ -61,7 +61,7 @@ while exit_logic == false
     btrk = true;
     while btrk
         try
-%             p = update_p(p,theta); --- Dylan
+            %p = update_p(p,theta); --- Dylan
             
             V_CELL = cell(num_inputs,1);
             S_CELL = cell(num_inputs,1);

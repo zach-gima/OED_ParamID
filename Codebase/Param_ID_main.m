@@ -58,7 +58,8 @@ input_folder = strcat('InputLibrary/Experimental/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+output_folder = strcat('/Users/Dylan/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
+% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 % output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path
@@ -227,7 +228,7 @@ try
         'truth_param','theta_0_true','LM_options','sel_k','selection_vector','bounds','ci95_full','t_paramID','output_folder');
         
         % matlabmail(recipient,subject,message,attachments)
-        matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);
+        %matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);
         
      	%% Calculate Confidence Intervals at the last stage and Plot results
         disp('Calculate confidence intervals for identified parameter values \n')
@@ -277,7 +278,7 @@ try
         'iter_history','output_folder','sel_k','selection_vector','truth_param',...
         'theta_0_true','LM_options','J_LM','bounds','alg_states');
 
-        matlabmail('ztakeo@berkeley.edu','Conf. Interval complete','',[]);
+        %matlabmail('ztakeo@berkeley.edu','Conf. Interval complete','',[]);
     end
     
     %% Plot Results: plot figure of truth and estimated values w/ C.I.'s
@@ -292,6 +293,6 @@ catch e %e is an MException struct
     
     diary off %stop logging command window
     
-    matlabmail('ztakeo@berkeley.edu','Error encountered',errorMessage,error_filename);
+    %matlabmail('ztakeo@berkeley.edu','Error encountered',errorMessage,error_filename);
 end
 

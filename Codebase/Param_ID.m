@@ -22,7 +22,7 @@ exp_num = Inputs.exp_num;
 % num_inputs = length(Voltage_exp);
 num_inputs = 1;
 % v_dat = cell2mat(Voltage_exp); % Truth/experimental data
-v_dat = Voltage_exp{1}(1:50);
+v_dat = Voltage_exp{1}(9:31);
 total_NT  = size(v_dat,1);
 
 % In experimental ID, Rc needs to be identified for each experiment
@@ -42,7 +42,7 @@ exit_logic = false;
 delta_theta_history = ones(25,1);
 delta_theta_history([5 6 20]) = 0; % set eq. param indices to 0
 % DEBUG
-plot(v_dat)
+plot(v_dat,'LineWidth',2,'Color','k');
 hold on
 
 while exit_logic == false
@@ -50,8 +50,8 @@ while exit_logic == false
     alpha = 1e5;
 
     %Sample with replacement
-%     rand_idx = sel_k(randsample(sum(selection_vector),groupsize)) 
-    rand_idx25 = 25;
+    rand_idx25 = sel_k(randsample(sum(selection_vector),groupsize)) 
+%     rand_idx25 = 25;
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
@@ -62,7 +62,7 @@ while exit_logic == false
     btrk = true;
     while btrk
         try
-            p_check = update_p(p,theta);
+            p = update_p(p,theta);
             
             V_CELL = cell(num_inputs,1);
             S_CELL = cell(num_inputs,1);
@@ -70,12 +70,20 @@ while exit_logic == false
 %             parfor idx = 1:num_inputs
             for idx = 1:num_inputs
                 [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
-                    exp_num{idx},Current_exp{idx}(1:50), Time_exp{idx}(1:50), ...
-                    Voltage_exp{idx}(1:50), T_amb{idx}, e_idx, theta, 1,Rc{idx});
+                    exp_num{idx},Current_exp{idx}(9:31), Time_exp{idx}(9:31), ...
+                    Voltage_exp{idx}(9:31), T_amb{idx}, e_idx, theta, 1,Rc{idx});
             end
+            
             v_sim = cell2mat(V_CELL);
             Sens = cell2mat(S_CELL);
+            costprev = norm(v_dat - v_sim,2);
+            %% Line search
+        while true 
+%             update parameter, just simulate to see if cost improves, 
+%             if not reduce alpha,
+%             if so, break
             
+
             
             % DEBUG
             plot(v_sim) 
@@ -86,9 +94,10 @@ while exit_logic == false
             normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
             Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
             
-            % Update / increase alpha?            
+            % Update / increase alpha?   
             delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
             delta_theta_history(rand_idx25) = delta_theta;
+            
             
             % Parameter Normalization -- NOTE: NEEDS TESTING
             theta_prev = theta; % NOTE: UN-NORMALIZED
@@ -97,7 +106,27 @@ while exit_logic == false
             theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
             
             theta = norm_to_origin(theta_norm,bounds,selection_vector); 
+            %check if we should got to anothe parameter or update this one
+            %again
+            V_CELL = cell(num_inputs,1);
+            S_CELL = cell(num_inputs,1);
             
+            for idx = 1:num_inputs
+            [V_CELL{idx}] = DFN_sim_casadi(p,...
+                    exp_num{idx},Current_exp{idx}(9:31), Time_exp{idx}(9:31), ...
+                    Voltage_exp{idx}(9:31), T_amb{idx}, e_idx, theta, 0,Rc{idx});
+            end
+            v_new = cell2mat(V_CELL);
+            costnew = norm(v_dat - v_new,2);
+            
+            
+            if costnew > costprev
+                theta = theta_prev;
+                alpha = alpha/10;
+            else
+                break
+            end
+        end
             btrk = false;
             
         catch e % logic for when casadi fails %TEST THIS
@@ -141,7 +170,7 @@ while exit_logic == false
     %     paramID_out.LM_logic = LM_logic;
     
     %     save(strcat(LM_filename_output,num2str(LM_Iter),'.mat'),'park0','paramID_out','LM_Iter');
-    cost = sum(abs(v_dat - v_sim));
+    cost = norm(v_dat - v_new,2);
     fprintf('Cost: %1.6f \n',cost);
     
 end

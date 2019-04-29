@@ -22,7 +22,7 @@ exp_num = Inputs.exp_num;
 % num_inputs = length(Voltage_exp);
 num_inputs = 1;
 % v_dat = cell2mat(Voltage_exp); % Truth/experimental data
-v_dat = Voltage_exp{1}(9:31);
+v_dat = Voltage_exp{1}(1:end);
 total_NT  = size(v_dat,1);
 
 % In experimental ID, Rc needs to be identified for each experiment
@@ -70,8 +70,8 @@ while exit_logic == false
 %             parfor idx = 1:num_inputs
             for idx = 1:num_inputs
                 [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
-                    exp_num{idx},Current_exp{idx}(9:31), Time_exp{idx}(9:31), ...
-                    Voltage_exp{idx}(9:31), T_amb{idx}, e_idx, theta, 1,Rc{idx});
+                    exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
+                    Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});
             end
             
             v_sim = cell2mat(V_CELL);
@@ -113,8 +113,8 @@ while exit_logic == false
             
             for idx = 1:num_inputs
             [V_CELL{idx}] = DFN_sim_casadi(p,...
-                    exp_num{idx},Current_exp{idx}(9:31), Time_exp{idx}(9:31), ...
-                    Voltage_exp{idx}(9:31), T_amb{idx}, e_idx, theta, 0,Rc{idx});
+                    exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
+                    Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
             end
             v_new = cell2mat(V_CELL);
             costnew = norm(v_dat - v_new,2);
@@ -124,6 +124,7 @@ while exit_logic == false
                 theta = theta_prev;
                 alpha = alpha/10;
             else
+                alpha = alpha*1.3;
                 break
             end
         end
@@ -138,8 +139,8 @@ while exit_logic == false
             delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
             
             % Parameter Normalization -- NOTE: NEEDS TESTING
-            theta_norm = origin_to_norm('param',theta_prev,bounds,selection_vector);
-            theta_norm(rand_idx22) = theta_prev(rand_idx25) + delta_theta;
+            theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
+            theta_norm(rand_idx22) = theta_prev(rand_idx22) + delta_theta;
             theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
             theta = norm_to_origin(theta_norm,bounds,selection_vector); 
         end

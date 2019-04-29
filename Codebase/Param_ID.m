@@ -50,7 +50,7 @@ while exit_logic == false
     alpha = 1e5;
 
     %Sample with replacement
-    rand_idx25 = sel_k(randsample(sum(selection_vector),groupsize)) 
+    rand_idx25 = 1;%sel_k(randsample(sum(selection_vector),groupsize)) 
 %     rand_idx25 = 25;
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
@@ -104,8 +104,8 @@ while exit_logic == false
             theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
             theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
             theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
-            
             theta = norm_to_origin(theta_norm,bounds,selection_vector); 
+            
             %check if we should got to anothe parameter or update this one
             %again
             V_CELL = cell(num_inputs,1);
@@ -119,12 +119,13 @@ while exit_logic == false
             v_new = cell2mat(V_CELL);
             costnew = norm(v_dat - v_new,2);
             
-            
+            %check if the cost got worse
             if costnew > costprev
+                %reset theta
                 theta = theta_prev;
+                %reduce step size
                 alpha = alpha/10;
             else
-                alpha = alpha*1.3;
                 break
             end
         end

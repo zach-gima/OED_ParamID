@@ -1,10 +1,8 @@
 % function for checking parameter identification routine exit conditions
-function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
+function [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta,Iter,SCD_options)
 
     % Parse Optimization Routine options
     maxIter = SCD_options.maxIter;
-
-    % SCD_options.exit_cond = [param_exit_thresh, chi_sq_rel_thresh, chi_sq_abs_thresh];
     param_exit_thresh = SCD_options.param_exit_thresh;
     chi_sq_rel_thresh = SCD_options.chi_sq_rel_thresh;
     chi_sq_abs_thresh = SCD_options.chi_sq_abs_thresh;
@@ -13,38 +11,31 @@ function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
     y_minus_yfit = v_dat - v_sim;
     
     % Save Various Metrics & Exit Criteria
-%     save_RMSE = rmse(v_dat,v_sim);
     W = 1;
-    chi_sq = (y_minus_yfit)'*W*(y_minus_yfit);
+    ec.chi_sq(Iter) = (y_minus_yfit)'*W*(y_minus_yfit); % Chi squared for this iteration and parameter
+    ec.chi_sq_mem(idx,Iter) = ec.chi_sq(Iter);  % Chi squared memory holds the prev. chi_sq value achieved for every parameter direction searched
     
-    %%%%%% Parameter Update -- Want Memory Vector (np x 1)
-    param_exit = max(abs(delta_theta)); % Convergence in the parameter estimates
-
-    
-    %     chi_sq_RelTol = abs((chi_sq - chi_sq(Iter-1)))/  chi_sq(Iter-1); % Rel. Tol for Cost Function
-    chi_sq_AbsTol = abs(chi_sq - chi_sq(Iter-1)); % Abs. Tol for Cost Function
- 
-    
-    %%%%% Rel tolerance -- Want Memory Vector  (np x 1)
-    
+    ec.param_exit(Iter) = max(abs(delta_theta)); % Convergence in the parameter estimates
+    ec.chi_sq_RelTol(Iter) = max( abs((ec.chi_sq_mem(:,Iter) - ec.chi_sq_mem(:,Iter-1))) ./ ec.chi_sq_mem(:,Iter-1) ); % Rel. Tol for Cost Function
+    ec.chi_sq_AbsTol(Iter) = abs(ec.chi_sq(Iter) - ec.chi_sq(Iter-1)); % Abs. Tol for Cost Function    
     
     % Display info.
-    fprintf('Chi_sq: %e \n',chi_sq);
+    fprintf('Chi_sq: %e \n',ec.chi_sq(Iter));
     fprintf('RMSE: %f \n',rmse(v_dat,v_sim));
-    fprintf('Parameter convergence criterion: %f \n',param_exit);%[ZTG Change]
-    fprintf('Cost function rel. tolerance criterion: %f \n',chi_sq_RelTol);%[ZTG Change]
-    fprintf('Cost function abs. tolerance criterion: %f \n',chi_sq_AbsTol);%[ZTG Change]
+    fprintf('Parameter convergence criterion: %f \n',ec.param_exit(Iter));
+    fprintf('Cost function rel. tolerance criterion: %f \n',ec.chi_sq_RelTol(Iter));
+    fprintf('Cost function abs. tolerance criterion: %f \n',ec.chi_sq_AbsTol(Iter));
     
-    %%% Multi-objective exit condition [ZTG change]
+    % Evaluate multi-objective exit condition
     % If (Cost Function decreases) AND (parameters converage OR
-    % cost function converges)
-    if (chi_sq < chi_sq(Iter-1)) && ((chi_sq_AbsTol < chi_sq_abs_thresh) || (param_exit < param_exit_thresh) || (chi_sq_RelTol < chi_sq_rel_thresh))
+    % cost function rel/abs converges)
+    if (ec.chi_sq(Iter) < ec.chi_sq(Iter-1)) && ( (ec.param_exit(Iter) < param_exit_thresh) || (ec.chi_sq_AbsTol(Iter) < chi_sq_abs_thresh) || (ec.chi_sq_RelTol(Iter) < chi_sq_rel_thresh) )
         fprintf('Converged in parameters at %d iterations \n',Iter)
         exit_logic = true;
     end
     
     if Iter == maxIter
-       fprintf('Max Iterations Reached')
+       fprintf('Max Iterations Reached')      
        exit_logic = true;
     end
     

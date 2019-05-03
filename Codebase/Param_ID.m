@@ -62,6 +62,8 @@ while exit_logic == false
     %Sample without replacement
     %sel_k = ...randsample
     
+    % Pick random coordinate, optimize cost function via approx. line search along that
+    % coordinate
     btrk = true;
     while btrk
         try
@@ -80,56 +82,57 @@ while exit_logic == false
             v_sim = cell2mat(V_CELL);
             Sens = cell2mat(S_CELL);
             costprev = norm(v_dat - v_sim,2);
+            
             %% Line search
-        while true 
-%             update parameter, just simulate to see if cost improves, 
-%             if not reduce alpha,
-%             if so, break
-            
-            % DEBUG
-            plot(v_sim) 
-            drawnow
-            
-            % Normalize Sensitivity
-            Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
-            normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
-            Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
-            
-            % Update / increase alpha?   
-            delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
-            delta_theta_history(rand_idx22) = delta_theta;
-            
-            % Parameter Normalization -- NOTE: NEEDS TESTING
-            theta_prev = theta; % NOTE: UN-NORMALIZED
-            theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
-            theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
-            theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
-            theta = norm_to_origin(theta_norm,bounds,selection_vector); 
-            
-            %check if we should got to anothe parameter or update this one
-            %again
-            V_CELL = cell(num_inputs,1);
-            S_CELL = cell(num_inputs,1);
-            
-            for idx = 1:num_inputs
-            [V_CELL{idx}] = DFN_sim_casadi(p,...
-                    exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
-                    Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
+            while true 
+    %             update parameter, just simulate to see if cost improves, 
+    %             if not reduce alpha,
+    %             if so, break
+
+                % DEBUG
+                plot(v_sim) 
+                drawnow
+
+                % Normalize Sensitivity
+                Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
+                normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
+                Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
+
+                % Update / increase alpha?   
+                delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
+                delta_theta_history(rand_idx22) = delta_theta;
+
+                % Parameter Normalization -- NOTE: NEEDS TESTING
+                theta_prev = theta; % NOTE: UN-NORMALIZED
+                theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
+                theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
+                theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
+                theta = norm_to_origin(theta_norm,bounds,selection_vector); 
+
+                %check if we should got to anothe parameter or update this one
+                %again
+                V_CELL = cell(num_inputs,1);
+                S_CELL = cell(num_inputs,1);
+
+                for idx = 1:num_inputs
+                [V_CELL{idx}] = DFN_sim_casadi(p,...
+                        exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
+                        Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
+                end
+                v_new = cell2mat(V_CELL);
+                costnew = norm(v_dat - v_new,2);
+
+                %check if the cost got worse
+                if costnew > costprev
+                    %reset theta
+                    theta = theta_prev;
+                    %reduce step size
+                    alpha = alpha/10;
+                else
+                    break
+                end
             end
-            v_new = cell2mat(V_CELL);
-            costnew = norm(v_dat - v_new,2);
-            
-            %check if the cost got worse
-            if costnew > costprev
-                %reset theta
-                theta = theta_prev;
-                %reduce step size
-                alpha = alpha/10;
-            else
-                break
-            end
-        end
-            btrk = false;
+                btrk = false;
             
         catch e % logic for when casadi fails %TEST THIS
             % An error will put you here.

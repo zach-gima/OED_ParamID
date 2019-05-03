@@ -49,7 +49,7 @@ delta_theta_history = ones(np,1)*100;
 
 while exit_logic == false
     % Reset alpha
-    alpha = 1e5;
+    %alpha = 1e5;
     
     %Sample with replacement
     rand_idx25 = sel_k(randsample(np,groupsize))
@@ -71,6 +71,8 @@ while exit_logic == false
     S_CELL = cell(num_inputs,1);
     
     %             parfor idx = 1:num_inputs
+    
+    %calculate jacobians
     for idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
             exp_num{idx+1},Current_exp{idx+1}(1:end), Time_exp{idx+1}(1:end), ...
@@ -86,7 +88,7 @@ while exit_logic == false
     normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
     Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
     
-    alpha =min(1e3 ,1/(Jac')*(v_dat - v_sim));
+    alpha =min(1e3 ,1/((Jac')*(v_dat - v_sim)));
     
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     

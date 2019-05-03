@@ -22,7 +22,7 @@ exp_num = Inputs.exp_num;
 % num_inputs = length(Voltage_exp);
 num_inputs = 1;
 % v_dat = cell2mat(Voltage_exp); % Truth/experimental data
-v_dat = Voltage_exp{1}(1:end);
+v_dat = Voltage_exp{2}(1:end);
 total_NT  = size(v_dat,1);
 
 % In experimental ID, Rc needs to be identified for each experiment
@@ -39,21 +39,20 @@ groupsize = 1;
 theta = theta_0;
 Jac = 0;
 exit_logic = false;
-delta_theta_history = ones(25,1);
-delta_theta_history([5 6 20]) = 0; % set eq. param indices to 0
+
 % DEBUG
 plot(v_dat,'LineWidth',2,'Color','k');
 hold on
 
 np = sum(selection_vector);
-delta_theta_history = zeros(np,1);
+delta_theta_history = ones(np,1)*100;
 
 while exit_logic == false
     % Reset alpha 
     alpha = 1e5;
 
     %Sample with replacement
-    rand_idx25 = 1;%sel_k(randsample(np,groupsize)) 
+    rand_idx25 = sel_k(randsample(np,groupsize))
 %     rand_idx25 = 25;
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
@@ -75,8 +74,8 @@ while exit_logic == false
 %             parfor idx = 1:num_inputs
             for idx = 1:num_inputs
                 [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
-                    exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
-                    Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});
+                    exp_num{idx+1},Current_exp{idx+1}(1:end), Time_exp{idx+1}(1:end), ...
+                    Voltage_exp{idx+1}(1:end), T_amb{idx+1}, e_idx, theta, 1,Rc{idx+1});
             end
             
             v_sim = cell2mat(V_CELL);
@@ -109,18 +108,18 @@ while exit_logic == false
                 theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
                 theta = norm_to_origin(theta_norm,bounds,selection_vector); 
 
-                %check if we should got to anothe parameter or update this one
+                %check if we should got to another parameter or update this one
                 %again
                 V_CELL = cell(num_inputs,1);
                 S_CELL = cell(num_inputs,1);
 
-                for idx = 1:num_inputs
-                [V_CELL{idx}] = DFN_sim_casadi(p,...
+                for idx = 2%1:num_inputs
+                [V_CELL{idx-1}] = DFN_sim_casadi(p,...
                         exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
                         Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
                 end
                 v_new = cell2mat(V_CELL);
-                costnew = norm(v_dat - v_new,2);
+                costnew = norm(v_dat - v_new,2)
 
                 %check if the cost got worse
                 if costnew > costprev
@@ -129,10 +128,13 @@ while exit_logic == false
                     %reduce step size
                     alpha = alpha/10;
                 else
+                     %It will reach this when a step improves the cost
+                    btrk = false;
                     break
                 end
             end
-                btrk = false;
+            
+           
             
         catch e % logic for when casadi fails %TEST THIS
             % An error will put you here.

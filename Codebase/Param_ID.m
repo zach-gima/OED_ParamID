@@ -113,8 +113,8 @@ while exit_logic == false
                 V_CELL = cell(num_inputs,1);
                 S_CELL = cell(num_inputs,1);
 
-                for idx = 1:num_inputs
-                [V_CELL{idx}] = DFN_sim_casadi(p,...
+                for idx = 2%1:num_inputs
+                [V_CELL{idx-1}] = DFN_sim_casadi(p,...
                         exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
                         Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
                 end
@@ -128,12 +128,13 @@ while exit_logic == false
                     %reduce step size
                     alpha = alpha/10;
                 else
+                     %It will reach this when a step improves the cost
+                    btrk = false;
                     break
                 end
             end
             
-            %It will reach this when a step improves the cost
-                btrk = false;
+           
             
         catch e % logic for when casadi fails %TEST THIS
             % An error will put you here.

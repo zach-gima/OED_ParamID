@@ -1,10 +1,6 @@
 % function for checking parameter identification routine exit conditions
 function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
 
-    %%%% NOTE:
-    %%%%%%%%%%%%%%%%%%%%% ZTG ADJUST THIS FUNCTION %%%%%%%%%%%%%%%%%%%%% 
-    %%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%% %%%%%%%%%%%%%%%%%%%%% 
-    
     % Parse Optimization Routine options
     maxIter = SCD_options.maxIter;
 
@@ -21,10 +17,17 @@ function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
     W = 1;
     chi_sq = (y_minus_yfit)'*W*(y_minus_yfit);
     
+    %%%%%% Parameter Update -- Want Memory Vector (np x 1)
     param_exit = max(abs(delta_theta)); % Convergence in the parameter estimates
-%     chi_sq_RelTol = abs((chi_sq - chi_sq(Iter-1)))/  chi_sq(Iter-1); % Rel. Tol for Cost Function
+
+    
+    %     chi_sq_RelTol = abs((chi_sq - chi_sq(Iter-1)))/  chi_sq(Iter-1); % Rel. Tol for Cost Function
     chi_sq_AbsTol = abs(chi_sq - chi_sq(Iter-1)); % Abs. Tol for Cost Function
  
+    
+    %%%%% Rel tolerance -- Want Memory Vector  (np x 1)
+    
+    
     % Display info.
     fprintf('Chi_sq: %e \n',chi_sq);
     fprintf('RMSE: %f \n',rmse(v_dat,v_sim));
@@ -41,7 +44,7 @@ function [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options)
     end
     
     if Iter == maxIter
-       frpintf('Max Iterations Reached')
+       fprintf('Max Iterations Reached')
        exit_logic = true;
     end
     

@@ -45,12 +45,15 @@ delta_theta_history([5 6 20]) = 0; % set eq. param indices to 0
 plot(v_dat,'LineWidth',2,'Color','k');
 hold on
 
+np = sum(selection_vector);
+delta_theta_history = zeros(np,1);
+
 while exit_logic == false
     % Reset alpha 
     alpha = 1e5;
 
     %Sample with replacement
-    rand_idx25 = 1;%sel_k(randsample(sum(selection_vector),groupsize)) 
+    rand_idx25 = 1;%sel_k(randsample(np,groupsize)) 
 %     rand_idx25 = 25;
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
@@ -83,8 +86,6 @@ while exit_logic == false
 %             if not reduce alpha,
 %             if so, break
             
-
-            
             % DEBUG
             plot(v_sim) 
             drawnow
@@ -96,8 +97,7 @@ while exit_logic == false
             
             % Update / increase alpha?   
             delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
-            delta_theta_history(rand_idx25) = delta_theta;
-            
+            delta_theta_history(rand_idx22) = delta_theta;
             
             % Parameter Normalization -- NOTE: NEEDS TESTING
             theta_prev = theta; % NOTE: UN-NORMALIZED
@@ -150,7 +150,7 @@ while exit_logic == false
     end
     
     % Check Exit Conditions
-%     [exit_logic] = check_ec(v_dat,v_sim,delta_theta,Iter,SCD_options);
+%     [exit_logic] = check_ec(v_dat,v_sim,delta_theta_history,Iter,SCD_options);
     
     % Save ParamID results every iteration
     %     paramID_out.Time_exp = Time_exp;

@@ -19,10 +19,10 @@ Voltage_exp = Inputs.V_LM_CELL;
 T_amb = Inputs.T_amb_sim; % note, comes in celcius
 exp_num = Inputs.exp_num;
 
-% num_inputs = length(Voltage_exp);
-num_inputs = 1;
-% v_dat = cell2mat(Voltage_exp); % Truth/experimental data
-v_dat = Voltage_exp{2}(1:end);
+num_inputs = length(Voltage_exp);
+
+v_dat = cell2mat(Voltage_exp); % Truth/experimental data
+%v_dat = Voltage_exp{2}(1:end);
 total_NT  = size(v_dat,1);
 
 % In experimental ID, Rc needs to be identified for each experiment
@@ -37,7 +37,6 @@ end
 %% SCM
 groupsize = 1;
 theta = theta_0;
-Jac = 0;
 exit_logic = false;
 
 % DEBUG
@@ -52,8 +51,6 @@ count = 1;
 
 while exit_logic == false
     % Reset alpha
-    %alpha = 1e5;
-    
     %Sample with replacement
     [~,b] = sort(W);
     rand_idx25 = sel_k(randsample(np,groupsize,true,np/2 + b))
@@ -61,7 +58,7 @@ while exit_logic == false
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
     
-    %Sample without replacement
+    %Sample without replacement ADD LATER MAYBE
     %sel_k = ...randsample
     
     % Pick random coordinate, optimize cost function via approx. line search along that
@@ -76,10 +73,10 @@ while exit_logic == false
     %             parfor idx = 1:num_inputs
     
     %calculate jacobians
-    for idx = 1:num_inputs
+    parfor idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
-            exp_num{idx+1},Current_exp{idx+1}(1:end), Time_exp{idx+1}(1:end), ...
-            Voltage_exp{idx+1}(1:end), T_amb{idx+1}, e_idx, theta, 1,Rc{idx+1});
+            exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
+            Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});
     end
     
     v_sim = cell2mat(V_CELL);
@@ -125,8 +122,8 @@ while exit_logic == false
                 V_CELL = cell(num_inputs,1);
                 S_CELL = cell(num_inputs,1);
                 
-                for idx = 2%1:num_inputs
-                    [V_CELL{idx-1}] = DFN_sim_casadi(p,...
+                for idx = 1:num_inputs
+                    [V_CELL{idx}] = DFN_sim_casadi(p,...
                         exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
                         Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
                 end

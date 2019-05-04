@@ -12,6 +12,11 @@ function [park0, paramID_out, Iter] = Param_ID(p,bounds,sel_k,selection_vector,t
 %the correspoinding index if that parameter is identified and zero if not
 
 %% Load Input and Set Variables
+    SCD_options.maxIter = 1000;
+    SCD_options.param_exit_thresh = 1e-3;
+    SCD_options.chi_sq_rel_thresh = 1e-3;
+    SCD_options.chi_sq_abs_thresh = 0.05;
+
 
 Current_exp = Inputs.Current_exp;
 Time_exp = Inputs.Time_exp; %% room for memory improvement
@@ -47,7 +52,7 @@ np = sum(selection_vector);
 delta_theta_history = ones(np,1)*100;
 W = ones(np,1)*100;
 
-count = 0;
+Iter = 0;
 Voltage_save = [];
 WCT_save = [];
 Rand_Idx_save = [];
@@ -57,7 +62,7 @@ Voltage_truth_save = v_dat;
 
 tic;
 while exit_logic == false
-    count = count + 1;
+    Iter = Iter + 1;
     % Reset alpha
     %Sample with replacement
     [~,b] = sort(W);
@@ -173,7 +178,8 @@ while exit_logic == false
     end
     
     % Check Exit Conditions
-        [exit_logic] = check_ec(v_dat,v_sim,delta_theta_history,Iter,SCD_options);
+    ec = [];
+        [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta_history,Iter,SCD_options);
     
     % Save ParamID results every iteration
     %     paramID_out.Time_exp = Time_exp;
@@ -223,5 +229,12 @@ fprintf('Final Parameter Values: %1.5e \n',park0)
 % paramID_out.save_lambda_matrix = save_lambda_matrix;
 % paramID_out.y_dat = y_dat;
 % paramID_out.LM_logic = LM_logic;
+
+paramID.Voltage = Voltage_save;
+paramID.WCT = WCT_save;
+paramID.Rand_Idx =Rand_Idx_save;
+paramID.Cost = Cost_save;
+paramID.Param = Param_save;
+paramID.Voltage_truth = Voltage_truth_save;
 
 end

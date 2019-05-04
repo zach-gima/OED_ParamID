@@ -51,6 +51,13 @@ hold on
 np = sum(selection_vector);
 delta_theta_history = ones(np,1)*100;
 W = ones(np,1)*100;
+ec.chi_sq(1) = 100; % Chi squared for this iteration and parameter
+ec.chi_sq_mem(:,1) = ones(np,1)*100;;  % Chi squared memory holds the prev. chi_sq value achieved for every parameter direction searched
+
+ec.param_exit(1) = 100; % Convergence in the parameter estimates
+ec.chi_sq_RelTol(1) = 100; % Rel. Tol for Cost Function
+ec.chi_sq_AbsTol(1) = 100;
+
 
 Iter = 0;
 Voltage_save = [];
@@ -66,7 +73,7 @@ while exit_logic == false
     % Reset alpha
     %Sample with replacement
     [~,b] = sort(W);
-    rand_idx25 = sel_k(randsample(np,groupsize,true,np/2 + b))
+    rand_idx25 = sel_k(randsample(np,groupsize,true,np/2 + b));
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
@@ -86,7 +93,7 @@ while exit_logic == false
     %% Save
     WCT_save = [WCT_save;toc];
     Rand_Idx_save = [Rand_Idx_save;rand_idx22];
-    Param_save = [Param_save,reshape(theta,[25,1])]
+    Param_save = [Param_save,reshape(theta,[25,1])];
     %%
     parfor idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
@@ -178,8 +185,8 @@ while exit_logic == false
     end
     
     % Check Exit Conditions
-    ec = [];
-        [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta_history,Iter,SCD_options);
+    
+        [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta_history,Iter+1,SCD_options,rand_idx22);
     
     % Save ParamID results every iteration
     %     paramID_out.Time_exp = Time_exp;

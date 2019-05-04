@@ -1,5 +1,5 @@
 % function for checking parameter identification routine exit conditions
-function [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta,Iter,SCD_options)
+function [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta,Iter,SCD_options,idx)
 
     % Parse Optimization Routine options
     maxIter = SCD_options.maxIter;

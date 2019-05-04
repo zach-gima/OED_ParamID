@@ -117,14 +117,17 @@ while exit_logic == false
     
     W(rand_idx22) = sum(abs(Jac));
     
-    alpha =min(1e5 ,1/((Jac')*(v_dat - v_sim)));
+    alpha =min(1e5 ,1/abs((Jac')*(v_dat - v_sim)));
     
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     
     %% Line search
     while btrk
         try
+            linesrch = 0;
+            maxstp = 4;
             while true
+                linesrch = linesrch + 1;
                 %update parameter, just simulate to see if cost improves,
                 %if not reduce alpha,
                 %if so, break
@@ -155,14 +158,20 @@ while exit_logic == false
                         Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
                 end
                 v_new = cell2mat(V_CELL);
-                costnew = norm(v_dat - v_new,2)
+                costnew = norm(v_dat - v_new,2);
                 
                 %check if the cost got worse
-                if costnew > costprev
+                if and(costnew > costprev, linesrch < maxstp)
                     %reset theta
                     theta = theta_prev;
                     %reduce step size
                     alpha = alpha/2;
+                elseif costnew > costprev
+                    %It will reach this when the line search takes too many
+                    %steps
+                    theta = theta_prev;
+                    btrk = false;
+                    break
                 else
                     %It will reach this when a step improves the cost
                     btrk = false;

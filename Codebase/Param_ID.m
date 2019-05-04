@@ -57,7 +57,6 @@ while exit_logic == false
     %Sample with replacement
     [~,b] = sort(W);
     rand_idx25 = sel_k(randsample(np,groupsize,true,np/2 + b))
-    %     rand_idx25 = 25;
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
@@ -102,25 +101,20 @@ while exit_logic == false
     while btrk
         try
             while true
-                %             update parameter, just simulate to see if cost improves,
-                %             if not reduce alpha,
-                %             if so, break
+                %update parameter, just simulate to see if cost improves,
+                %if not reduce alpha,
+                %if so, break
                 
                 % DEBUG
                 plot(v_sim)
                 drawnow
                 
-%                 % Normalize Sensitivity
-%                 Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
-%                 normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
-%                 Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
                 
                 % Update / increase alpha?
                 delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
                 delta_theta_history(rand_idx22) = delta_theta;
                 
-                % Parameter Normalization -- NOTE: NEEDS TESTING
-                %theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
+                % Parameter Normalization -- 
                 theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
                 theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
                 theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
@@ -160,15 +154,6 @@ while exit_logic == false
             
             % Propose a smaller parameter step
             alpha = alpha/2; % NOTE: NEEDS TESTING
-            %delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
-            %grad = (Jac')*(v_dat - v_sim);
-            %alpha = min(alpha,1/abs(grad));
-            
-            % Parameter Normalization -- NOTE: NEEDS TESTING
-            %theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
-            %theta_norm(rand_idx22) = theta_prev(rand_idx22) + delta_theta;
-            %theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
-            %theta = norm_to_origin(theta_norm,bounds,selection_vector);
             theta = theta_prev;
         end
         

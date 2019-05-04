@@ -47,9 +47,17 @@ np = sum(selection_vector);
 delta_theta_history = ones(np,1)*100;
 W = ones(np,1)*100;
 
-count = 1;
+count = 0;
+Voltage_save = [];
+WCT_save = [];
+Rand_Idx_save = [];
+Cost_save = [];
+Param_save = [];
+Voltage_truth_save = v_dat;
 
+tic;
 while exit_logic == false
+    count = count + 1;
     % Reset alpha
     %Sample with replacement
     [~,b] = sort(W);
@@ -70,18 +78,25 @@ while exit_logic == false
     V_CELL = cell(num_inputs,1);
     S_CELL = cell(num_inputs,1);
     
-    %             parfor idx = 1:num_inputs
-    
-    %calculate jacobians
+    %% Save
+    WCT_save = [WCT_save;toc];
+    Rand_Idx_save = [Rand_Idx_save;rand_idx22];
+    Param_save = [Param_save,reshape(theta,[25,1])]
+    %%
     parfor idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
             exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
             Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});
     end
-    
+
     v_sim = cell2mat(V_CELL);
     Sens = cell2mat(S_CELL);
     costprev = norm(v_dat - v_sim,2);
+   %% Save
+    Voltage_save = [Voltage_save,reshape(v_sim,[length(v_sim),1])];
+    Cost_save = [Cost_save; costprev];
+    %%
+    
     
     % Normalize Sensitivity
     Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
@@ -111,7 +126,7 @@ while exit_logic == false
                 delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
                 delta_theta_history(rand_idx22) = delta_theta;
                 
-                % Parameter Normalization -- 
+                % Parameter Normalization --
                 theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
                 theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
                 theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
@@ -122,7 +137,7 @@ while exit_logic == false
                 V_CELL = cell(num_inputs,1);
                 S_CELL = cell(num_inputs,1);
                 
-                for idx = 1:num_inputs
+                parfor idx = 1:num_inputs
                     [V_CELL{idx}] = DFN_sim_casadi(p,...
                         exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
                         Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
@@ -158,7 +173,7 @@ while exit_logic == false
     end
     
     % Check Exit Conditions
-    %     [exit_logic] = check_ec(v_dat,v_sim,delta_theta_history,Iter,SCD_options);
+        [exit_logic] = check_ec(v_dat,v_sim,delta_theta_history,Iter,SCD_options);
     
     % Save ParamID results every iteration
     %     paramID_out.Time_exp = Time_exp;
@@ -180,6 +195,7 @@ while exit_logic == false
     %     paramID_out.LM_logic = LM_logic;
     
     %     save(strcat(LM_filename_output,num2str(LM_Iter),'.mat'),'park0','paramID_out','LM_Iter');
+    
     cost = norm(v_dat - v_new,2);
     fprintf('Cost: %1.6f \n',cost);
     

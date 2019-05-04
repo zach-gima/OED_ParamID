@@ -46,13 +46,17 @@ hold on
 
 np = sum(selection_vector);
 delta_theta_history = ones(np,1)*100;
+W = ones(np,1)*100;
+
+count = 1;
 
 while exit_logic == false
     % Reset alpha
     %alpha = 1e5;
     
     %Sample with replacement
-    rand_idx25 = sel_k(randsample(np,groupsize))
+    [~,b] = sort(W);
+    rand_idx25 = sel_k(randsample(np,groupsize,true,np/2 + b))
     %     rand_idx25 = 25;
     rand_idx22 = twenty2to25(rand_idx25,'522');
     e_idx = zeros(size(selection_vector));
@@ -88,7 +92,9 @@ while exit_logic == false
     normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
     Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
     
-    alpha =min(1e3 ,1/((Jac')*(v_dat - v_sim)));
+    W(rand_idx22) = sum(abs(Jac));
+    
+    alpha =min(1e5 ,1/((Jac')*(v_dat - v_sim)));
     
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     
@@ -138,8 +144,6 @@ while exit_logic == false
                     %reset theta
                     theta = theta_prev;
                     %reduce step size
-                    grad = (Jac')*(v_dat - v_sim);
-                    alpha = min(alpha,1/abs(grad));
                     alpha = alpha/2;
                 else
                     %It will reach this when a step improves the cost

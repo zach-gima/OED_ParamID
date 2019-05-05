@@ -67,7 +67,7 @@ Cost_save = [];
 Param_save = [];
 Voltage_truth_save = v_dat;
 Sens_save = [];
-%save('DylanDebug/alpha10000','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
+%save('DylanDebug/alpha10000','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
     Iter = Iter + 1;

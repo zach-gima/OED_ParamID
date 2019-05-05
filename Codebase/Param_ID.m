@@ -66,7 +66,7 @@ Rand_Idx_save = [];
 Cost_save = [];
 Param_save = [];
 Voltage_truth_save = v_dat;
-
+%save('DylanDebug/alpha10000','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
     Iter = Iter + 1;
@@ -117,7 +117,7 @@ while exit_logic == false
     
     W(rand_idx22) = sum(abs(Jac));
     
-    alpha =min(1e5 ,1/abs((Jac')*(v_dat - v_sim)));
+    alpha =min(1,1/abs((Jac')*(v_dat - v_sim)));
     
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     

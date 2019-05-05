@@ -66,6 +66,7 @@ Rand_Idx_save = [];
 Cost_save = [];
 Param_save = [];
 Voltage_truth_save = v_dat;
+Sens_save = [];
 %save('DylanDebug/alpha10000','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
@@ -107,6 +108,7 @@ while exit_logic == false
    %% Save
     Voltage_save = [Voltage_save,reshape(v_sim,[length(v_sim),1])];
     Cost_save = [Cost_save; costprev];
+    Sens_save = [Sens_save,norm(Sens,2)];
     %%
     
     

@@ -127,7 +127,7 @@ while exit_logic == false
     while btrk
         try
             linesrch = 0;
-            maxstp = 4;
+            maxstp = 2;
             while true
                 linesrch = linesrch + 1;
                 %update parameter, just simulate to see if cost improves,
@@ -144,11 +144,12 @@ while exit_logic == false
                 delta_theta_history(rand_idx22) = delta_theta;
                 
                 % Parameter Normalization --
+                Selected_params = theta(sel_k); 
                 theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
                 theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
                 theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
                 theta = norm_to_origin(theta_norm,bounds,selection_vector);
-                
+                p = update_p(p,theta);
                 %check if we should got to another parameter or update this one
                 %again
                 V_CELL = cell(num_inputs,1);

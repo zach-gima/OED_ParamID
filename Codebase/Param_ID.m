@@ -67,6 +67,7 @@ Cost_save = [];
 Param_save = [];
 Voltage_truth_save = v_dat;
 Sens_save = [];
+Param_norm_save = [];
 %save('DylanDebug/alpha10000','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
@@ -94,6 +95,8 @@ while exit_logic == false
     %% Save
     WCT_save = [WCT_save;toc];
     Rand_Idx_save = [Rand_Idx_save;rand_idx22];
+    theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
+    Param_norm_save = [Param_norm_save, reshape(theta_norm,[22,1])]
     Param_save = [Param_save,reshape(theta,[25,1])];
     %%
     parfor idx = 1:num_inputs

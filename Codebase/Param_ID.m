@@ -45,6 +45,7 @@ theta = theta_0;
 exit_logic = false;
 
 % DEBUG
+figure(1);
 plot(v_dat,'LineWidth',2,'Color','k');
 hold on
 
@@ -68,7 +69,8 @@ Param_save = [];
 Voltage_truth_save = v_dat;
 Sens_save = [];
 Param_norm_save = [];
-%save('DylanDebug/alpha10000','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
+Linesrch_save = [];
+%save('DylanDebug/alpha10000','Linesrch_save','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
     Iter = Iter + 1;
@@ -95,9 +97,11 @@ while exit_logic == false
     %% Save
     WCT_save = [WCT_save;toc];
     Rand_Idx_save = [Rand_Idx_save;rand_idx22];
+    Selected_params = theta(sel_k); 
     theta_norm = origin_to_norm('param',Selected_params,bounds,selection_vector);
-    Param_norm_save = [Param_norm_save, reshape(theta_norm,[22,1])]
+    Param_norm_save = [Param_norm_save, reshape(theta_norm,[22,1])];
     Param_save = [Param_save,reshape(theta,[25,1])];
+    
     %%
     parfor idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
@@ -111,6 +115,11 @@ while exit_logic == false
    %% Save
     Voltage_save = [Voltage_save,reshape(v_sim,[length(v_sim),1])];
     Cost_save = [Cost_save; costprev];
+    %for debugging
+    figure(2)
+    plot(Cost_save)
+    figure(1)
+    
     Sens_save = [Sens_save,norm(Sens,2)];
     %%
     
@@ -127,10 +136,10 @@ while exit_logic == false
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     
     %% Line search
+    linesrch = 0;
+    maxstp = 4;
     while btrk
         try
-            linesrch = 0;
-            maxstp = 2;
             while true
                 linesrch = linesrch + 1;
                 %update parameter, just simulate to see if cost improves,
@@ -184,9 +193,7 @@ while exit_logic == false
                     break
                 end
             end
-            
-            
-            
+
         catch e % logic for when casadi fails %TEST THIS
             % An error will put you here.
             errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
@@ -194,13 +201,13 @@ while exit_logic == false
             % Propose a smaller parameter step
             alpha = alpha/2; % NOTE: NEEDS TESTING
             theta = theta_prev;
-        end
-        
-        
+        end 
     end
     
-    % Check Exit Conditions
+    %save a debugging param
+    Linesrch_save =[Linesrch_save,linesrch];
     
+    % Check Exit Conditions
         [ec,exit_logic] = check_ec(v_dat,v_sim,ec,delta_theta_history,Iter+1,SCD_options,rand_idx22);
     
     % Save ParamID results every iteration
@@ -258,5 +265,8 @@ paramID.Rand_Idx =Rand_Idx_save;
 paramID.Cost = Cost_save;
 paramID.Param = Param_save;
 paramID.Voltage_truth = Voltage_truth_save;
+paramID.Sens_save = Sens_save;
+paramID.Param_norm_save = Param_norm_save ;
+paramID.Linesrch_save = Linesrch_save;
 
 end

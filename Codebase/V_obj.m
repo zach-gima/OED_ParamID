@@ -29,15 +29,14 @@ function [ cost,fgrad ] = V_obj(selected_params,selection_vector, Inputs, p)
     
     % Simulate DFN and Calculate Sensitivties for initial parameter values
     SensFlag = 1;
-%     parfor
-    for idx = 1:num_inputs        
+    parfor idx = 1:num_inputs        
         [V_LM_CELL{idx}, ~, S_LM_CELL{idx}] = DFN_sim_casadi(p,Current_exp{idx}, Time_exp{idx}, Voltage_exp{idx}, T_amb{idx}, selection_vector, selected_params,SensFlag,Rc{idx});
     end
     
     %% Compute Cost
     v_sim = cell2mat(V_LM_CELL);
     sens = cell2mat(S_LM_CELL);
-    v_dat = c2ll2mat(Inputs.Voltage_exp); % truth/measured voltage data we're fitting to   
+    v_dat = cell2mat(Voltage_exp); % truth/measured voltage data we're fitting to   
 
     N = length(v_dat);
     MSE = mean((v_dat - v_sim).^2);    

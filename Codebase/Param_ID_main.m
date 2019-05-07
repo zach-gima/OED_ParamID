@@ -25,7 +25,7 @@ theta_0 = Nominal_param;
 
 %%%%%%%%%%%%%%%  File I/O (Set once)   %%%%%%%%%%%%%%%
 % Input subfolder
-input_folder = strcat('InputLibrary/MaxSensInputs/OED/');
+input_folder = strcat('InputLibrary/Experimental/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
@@ -40,8 +40,8 @@ mkdir(output_folder); %create new subfolder with current date in output_folder
 % [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
 filename_input_vector{1} = strcat(input_folder,'V_sim_G2G1.mat');
 filename_output_vector{1} = strcat(output_folder,baseline{1},'G2G1_',init_cond,'.mat');
-% selection_vector = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % 13 params
-selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
+selection_vector = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % 13 params
+% selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
 
 %% Display Simulation Info
 
@@ -54,7 +54,8 @@ datetime_initial
 fprintf('Initial Conditions: %s \n',init_cond);
 fprintf('Baseline: %s \n',baseline{1});
 fprintf('Number of Groups: %i \n',num_groups);
-fprintf('Number of Parameters: %i \n',sum(selection_vector))
+fprintf('Number of Parameters: %i \n',sum(selection_vector));
+
 %% Call ParamID function
 
 %initialize vectors for storing metrics and other data
@@ -91,9 +92,9 @@ for jj = 1:num_groups
     [theta_ID,FVAL,EXITFLAG,fmincon_output,LAMBDA,GRAD,HESSIAN]= ...
        fmincon(fh,selected_params,[],[],[],[],lb,ub,[],opt);
     
-    fprintf('Parameter ID complete. Finished in %i seconds.',toc);
+    fprintf('Parameter ID complete. Finished in %i seconds. \n',toc);
     % Save data & send email
-    save(filename_output,'theta_ID',fmincon_output);
+    save(filename_output,'theta_ID','fmincon_output');
 
     % matlabmail(recipient,subject,message,attachments)
     matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);

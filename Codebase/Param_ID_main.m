@@ -29,7 +29,7 @@ input_folder = strcat('InputLibrary/Experimental/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/EEC227C/',date_txt,'/');
+% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/EEC227C/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 % output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path
@@ -38,8 +38,8 @@ mkdir(output_folder); %create new subfolder with current date in output_folder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
 % [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
-filename_input_vector{1} = strcat(input_folder,'V_sim_G2G1.mat');
-filename_output_vector{1} = strcat(output_folder,baseline{1},'G2G1_',init_cond,'.mat');
+filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
+filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_',init_cond,'.mat');
 selection_vector = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % 13 params
 % selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
 
@@ -66,37 +66,51 @@ rmse_final = [];
 iter_history = [];
 theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting purposes (param_table_plotter)
 
-for jj = 1:num_groups
-    % Load Group Specific Inputs
-    filename_input = filename_input_vector{jj};
-    filename_output = filename_output_vector{jj};
-    Inputs = load(filename_input); %Current, Voltage, Time, T_amb     
-    sel_k = find(selection_vector);
+try
+    for jj = 1:num_groups
+        % Load Group Specific Inputs
+        filename_input = filename_input_vector{jj};
+        filename_output = filename_output_vector{jj};
+        Inputs = load(filename_input); %Current, Voltage, Time, T_amb     
+        sel_k = find(selection_vector);
 
-    % Setup vectors related to parameter sensitivity selection
-    selected_params = theta_0(sel_k);  % Goes from 21x1 vector to 18x1 (in all params selected scenario)
-    num_param = size(selected_params,1); % number of param  
+        % Setup vectors related to parameter sensitivity selection
+        selected_params = theta_0(sel_k);  % Goes from 21x1 vector to 18x1 (in all params selected scenario)
+        num_param = size(selected_params,1); % number of param  
+
+        % run fmincon     
+        tic
+
+        lb = bounds.min(sel_k);
+        ub = bounds.max(sel_k);
+
+        opt = optimoptions('fmincon','Display','iter','Algorithm','sqp',...
+        'SpecifyObjectiveGradient',true,'Diagnostics','on');  %'CheckGradients',true,'FiniteDifferenceType','central',
+
+        % create anonymous function to pass in other parameters needed for V_obj
+        fh = @(x)V_obj(x,selection_vector, Inputs, p);
+
+        [theta_ID,FVAL,EXITFLAG,fmincon_output,LAMBDA,GRAD,HESSIAN]= ...
+           fmincon(fh,selected_params,[],[],[],[],lb,ub,[],opt);
+
+        t_wallclock = toc;
+        datetime_final = datetime('now','TimeZone','local')
+        fprintf('Parameter ID complete. Finished in %i seconds. \n',t_wallclock);
+
+        % Save data & send email
+        save(filename_output,'theta_ID','fmincon_output','t_wallclock');
+
+        % matlabmail(recipient,subject,message,attachments)
+        matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);
+    end
+catch e %e is an MException struct
+    % An error will put you here.
+    errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
     
-    % run fmincon     
-    tic
-
-    lb = bounds.min(sel_k);
-    ub = bounds.max(sel_k);
-
-    opt = optimoptions('fmincon','Display','iter','Algorithm','sqp',...
-    'SpecifyObjectiveGradient',true,'Diagnostics','on');  %'CheckGradients',true,'FiniteDifferenceType','central',
-
-    % create anonymous function to pass in other parameters needed for V_obj
-    fh = @(x)V_obj(x,selection_vector, Inputs, p);
-
-    [theta_ID,FVAL,EXITFLAG,fmincon_output,LAMBDA,GRAD,HESSIAN]= ...
-       fmincon(fh,selected_params,[],[],[],[],lb,ub,[],opt);
+%     % Save ParamID results even when erorr occurs
+%     save(filename_output,'park0','paramID_out','LM_Iter','ci95_full');
     
-    fprintf('Parameter ID complete. Finished in %i seconds. \n',toc);
-    % Save data & send email
-    save(filename_output,'theta_ID','fmincon_output');
-
-    % matlabmail(recipient,subject,message,attachments)
-    matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);
-end
-
+    diary off %stop logging command window
+    
+    matlabmail('ztakeo@berkeley.edu','Error encountered',errorMessage,error_filename);
+end    

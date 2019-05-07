@@ -50,10 +50,10 @@ plot(v_dat,'LineWidth',2,'Color','k');
 hold on
 
 np = 22;
-delta_theta_history = ones(np,1)*100.*selection_vector;
+delta_theta_history = ones(np,1)*100.*selection_vector([1:4,7:19,21:25]);
 %W = ones(np,1)*100.*selection_vector;
-ec.chi_sq(1) = 100.*selection_vector; % Chi squared for this iteration and parameter
-ec.chi_sq_mem(:,1) = ones(np,1)*100.*selection_vector;  % Chi squared memory holds the prev. chi_sq value achieved for every parameter direction searched
+ec.chi_sq(1) = 100; % Chi squared for this iteration and parameter
+ec.chi_sq_mem(:,1) = ones(np,1)*100.*selection_vector([1:4,7:19,21:25]);  % Chi squared memory holds the prev. chi_sq value achieved for every parameter direction searched
 
 ec.param_exit(1) = 100; % Convergence in the parameter estimates
 ec.chi_sq_RelTol(1) = 100; % Rel. Tol for Cost Function
@@ -77,7 +77,7 @@ while exit_logic == false
     % Reset alpha
     %Sample with replacement
     %[~,b] = sort(W);
-    rand_idx25 = randsample(np,groupsize,true,selection_vector) %,true,np/2 + b));
+    rand_idx25 = randsample(25,groupsize,true, [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]) %,true,np/2 + b));
     for i = 1 : length(rand_idx25)
     rand_idx22(i) = twenty2to25(rand_idx25(i),'522');
     end

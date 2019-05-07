@@ -67,8 +67,11 @@ output_folder = strcat('/Users/Dylan/Documents/GitHub/OED_ParamID/ID_results/',d
 mkdir(output_folder); %create new subfolder with current date in output_folder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
-[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
-
+%[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
+filename_input = strcat(input_folder,'V_sim_G2G1.mat');
+selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
+sel_k = find(selection_vector);
+filename_output = '';
 %% Display Simulation Info
 
 %try/catch structure used to send email alert if program exits w/ error
@@ -189,20 +192,20 @@ try
 %         LM_options.ctrl_lambda = ctrl_lambda(jj);
         
         %% Load Group Specific Inputs
-        filename_input = filename_input_vector{jj};
-        filename_output = filename_output_vector{jj};
+        %filename_input = filename_input_vector{jj};
+        %filename_output = filename_output_vector{jj};
         Inputs = load(filename_input); %Current, Voltage, Time, T_amb     
-        ci_inputs = load(ci_input_vector{jj}); %Inputs for each separate group -- used for C.I. calc.
+        %ci_inputs = load(ci_input_vector{jj}); %Inputs for each separate group -- used for C.I. calc.
         
-        SensSelec = selection_vector(:,jj);
-        sel_k = find(selection_vector(:,jj));
+        %SensSelec = selection_vector(:,jj);
+        %sel_k = find(selection_vector(:,jj));
 
         %% Call function       
         tic %measure program execution time
 
         % Prev. had outputs [LM_Iter,paramID_out], which are now just
         % global variables. See note at beginning of script
-        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector(:,jj),theta_0,Inputs,filename_output,SCD_options); 
+        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,theta_0,Inputs,filename_output,SCD_options); 
 
         % Save time it took to identify each parameter group
         datetime_paramID{jj} = datetime('now','TimeZone','local')

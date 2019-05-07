@@ -40,12 +40,12 @@ else %M2M case
 end
 
 %% SCM
-groupsize = 1;
+groupsize = 2;
 theta = theta_0;
 exit_logic = false;
 
 % DEBUG
-figure(1);
+figure(1)
 plot(v_dat,'LineWidth',2,'Color','k');
 hold on
 
@@ -76,9 +76,11 @@ while exit_logic == false
     Iter = Iter + 1;
     % Reset alpha
     %Sample with replacement
-    [~,b] = sort(W);
-    rand_idx25 = sel_k(randsample(np,groupsize,true,np/2 + b));
-    rand_idx22 = twenty2to25(rand_idx25,'522');
+    %[~,b] = sort(W);
+    rand_idx25 = sel_k(randsample(np,groupsize)) %,true,np/2 + b));
+    for i = 1 : length(rand_idx25)
+    rand_idx22(i) = twenty2to25(rand_idx25(i),'522');
+    end
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
     
@@ -103,7 +105,7 @@ while exit_logic == false
     Param_save = [Param_save,reshape(theta,[25,1])];
     
     %%
-    parfor idx = 1:num_inputs
+    for idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
             exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
             Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});
@@ -119,6 +121,7 @@ while exit_logic == false
     figure(2)
     plot(Cost_save)
     figure(1)
+    drawnow
     
     Sens_save = [Sens_save,norm(Sens,2)];
     %%
@@ -127,17 +130,16 @@ while exit_logic == false
     % Normalize Sensitivity
     Selected_params = theta(sel_k);  % Goes from 25x1 vector to 22x1 (in all params selected scenario)
     normalized_sens_bar = origin_to_norm('sens',Selected_params,bounds,selection_vector);
-    Jac = bsxfun(@times,normalized_sens_bar(rand_idx25),Sens);
+    Jac = bsxfun(@times,normalized_sens_bar(rand_idx25)',Sens);
     
-    W(rand_idx22) = sum(abs(Jac));
+    %W(rand_idx22) = sum(abs(Jac));
     
-    alpha =min(1,1/abs((Jac')*(v_dat - v_sim)));
-    
+    alpha =min(1,1/min(abs((Jac')*(v_dat - v_sim))'));
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     
     %% Line search
     linesrch = 0;
-    maxstp = 4;
+    maxstp = 1;
     while btrk
         try
             while true

@@ -742,7 +742,7 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
             fprintf('Max voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
             v_sim = concatenate_data(v_sim);
             %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
-            sens(1:length(S3_sim)) = S3_sim';
+            sens(1:length(S3_sim),:) = S3_sim';
             varargout{1} = sens;
             alg_states = [];
             return 

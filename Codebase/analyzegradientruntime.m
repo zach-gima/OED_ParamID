@@ -19,18 +19,21 @@ T_amb = Inputs.T_amb_sim; % note, comes in celcius
 exp_num = Inputs.exp_num;
 Rc = Inputs.Rc;
 
-time = [];
+time_S_save = [];
 e_idx = zeros(1,25);
 
 for i=sel_k'
 e_idx(i) = 1
 tic
 for idx = 1
-[V_CELL, ~, S_CELL] = DFN_sim_casadi(p,...
-            exp_num{idx},Current_exp{idx}(1:2), Time_exp{idx}(1:2), ...
-            Voltage_exp{idx}(1:2), T_amb{idx}, e_idx, theta_0, 1,Rc{idx});
+[V_CELL,~,Sens] = DFN_sim_casadi(p,...
+            exp_num{idx},Current_exp{idx}(1:1), Time_exp{idx}(1:1), ...
+            Voltage_exp{idx}(1:1), T_amb{idx}, e_idx, theta_0, 1,Rc{idx});
 end
-time_save = [time,toc];
+time_save = [time_save,toc];
+hold on
+plot(time_save);
+drawnow
 end
 
 maxs = max(time_save);

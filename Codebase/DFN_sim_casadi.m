@@ -15,7 +15,7 @@
 
 % T_amb expected in Celsius
 
-function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag,Rc) % [ZTG change] removed Rc for no model-to-model comparison
+function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag,Rc) % [ZTG change] removed Rc for no model-to-model comparison
 
     addpath('/Users/ztakeo/Documents/MATLAB/casadi') % Mac Laptop
 %     addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows') % HPC-1
@@ -139,7 +139,6 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;
     p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;
 
-    
     %% Input charge/discharge Current Data %%
     % % Current | Positive <=> Discharge, Negative <=> Charge
 
@@ -181,14 +180,10 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     % Vector lengths
     Ncsn = p.PadeOrder * (p.Nxn-1);
     Ncsp = p.PadeOrder * (p.Nxp-1);
-    Nce = p.Nx - 3;
-    Nc = Ncsn+Ncsp+Nce;
     Nn = p.Nxn - 1;
     Ns = p.Nxs - 1;
     Np = p.Nxp - 1;
-    Nnp = Nn+Np;
     Nx = p.Nx - 3;
-    Nz = 3*Nnp + Nx;
 
     c_s_n0 = zeros(p.PadeOrder,1);
     c_s_p0 = zeros(p.PadeOrder,1);
@@ -207,10 +202,6 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     %c_e = zeros(Nx,NT); %CASADI CHANGE
     c_e = SX.zeros(Nx,NT);
     c_e(:,1) = ce0 * ones(Nx,1);
-
-    %c_ex = zeros(Nx+4,NT); %CASADI CHANGE
-    c_ex = SX.zeros(Nx+4,NT);
-    c_ex(:,1) = c_e(1,1) * ones(Nx+4,1);
 
     % Temperature
     % T = zeros(NT,1);
@@ -241,55 +232,17 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     % Molar Ionic Flux
     jn = zeros(Nn,NT);
     jp = zeros(Np,NT);
-
-    % Surface concentration
-    c_ss_n = zeros(Nn,NT);
-    c_ss_p = zeros(Np,NT);
-    c_ss_n(:,1) = repmat(csn0, [Nn 1]);
-    c_ss_p(:,1) = repmat(csp0, [Np 1]);
-
+    
     % Volume average concentration
     c_avg_n = zeros(Nn,NT);
-    c_avg_p = zeros(Np,NT);
     c_avg_n(:,1) = repmat(csn0, [Nn 1]);
-    c_avg_p(:,1) = repmat(csp0, [Np 1]);
 
     % SOC (Bulk Anode SOC)
     SOC = zeros(NT,1);
     SOC(1) = (mean(c_avg_n(:,1)) - cn_low) / (cn_high - cn_low);%soc00;%(mean(c_avg_n(:,1)) - cn_low) / (cn_high - cn_low);
 
-    % Overpotential
-    eta_n = zeros(Nn,NT);
-    eta_p = zeros(Np,NT);
-
-    % Constraint Outputs
-    %c_e_0n = zeros(NT,1); %CASADI CHANGE
-    c_e_0n = SX.zeros(NT,1); 
-    c_e_0n(1) = c_ex(1,1);
-
-    %c_e_0p = zeros(NT,1); %CASADI CHANGE
-    c_e_0p = SX.zeros(NT,1);
-    c_e_0p(1) = c_ex(end,1);
-
-    eta_s_Ln = zeros(NT,1);
-    eta_s_Ln(1) = phi_s_p(1,1) - phi_e(1,1);
-
-    % Voltage
-    Volt = zeros(NT,1);
-    Volt(1) = phi_s_p(end,1) - phi_s_n(1,1) - p.R_c*I(1);
-
-    % Conservation of Li-ion matter %[ZTG] may be able to remove since isn't
-    % currently being used
-    n_Li_s = zeros(NT,1);
-    %n_Li_e = zeros(NT,1); % CASADI CHANGE
-    n_Li_e = SX.zeros(NT,1);
-
-    n_Li_e(1) = sum(c_e(1:Nn,1)) * p.L_n*p.delta_x_n * p.epsilon_e_n * p.Area ...
-         + sum(c_e(Nn+1:end-Np,1)) * p.L_s*p.delta_x_s * p.epsilon_e_s * p.Area ...
-         + sum(c_e(end-Np+1:end,1)) * p.L_p*p.delta_x_p * p.epsilon_e_p * p.Area;
-
     % Initial Conditions
-    x0 = [c_s_n(:,1); c_s_p(:,1); c_e(:,1); T10; T20];
+    x0_nom = [c_s_n(:,1); c_s_p(:,1); c_e(:,1); T10; T20];
 
     z0 = [phi_s_n(:,1); phi_s_p(:,1); i_en(:,1); i_ep(:,1);...
           phi_e(:,1); jn(:,1); jp(:,1)];
@@ -421,118 +374,109 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     %% Sensitivity Calculation (if turned on)
 
     % Initial condition
-    x0_call = Function('x0_call',{park},{x0},{'park'},{'result'});
+    x0_call = Function('x0_call',{park},{x0_nom},{'park'},{'result'});
     x0_init = full(x0_call(park0));
+    x0 = full(x0_call(park0));
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % 1. Calculate Jacobian automatically
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    if SensFlag == 1 % Calculate sensitivity flag == true
+    Jac_V0_param = jacobian(L,Total_park);
+    V0_call = Function('V0_call',{park,x,u},{Jac_V0_param},{'park','x','u'},{'result'});
+    S3_0_V0_params = full(V0_call(park0,x0_init,0));
 
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % 1. Calculate Jacobian automatically
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-        Jac_V0_param = jacobian(L,Total_park);
-        V0_call = Function('V0_call',{park,x,u},{Jac_V0_param},{'park','x','u'},{'result'});
-        S3_0_V0_params = full(V0_call(park0,x0_init,0));
-
-        for j=1:length(sel_k)
-            if sel_k(j) == 21 % c_e0 index
-                Jac_x0_ce0 = jacobian(x0,p.c_e0);
-                Jac_x0_ce0_call = Function('Jac_x0_ce0_call',{Total_park},{Jac_x0_ce0},{'Total_park'},{'result'});
-                S1_0_x0_ce0 = full(Jac_x0_ce0_call(Total_park0));
-            end
+    for j=1:length(sel_k)
+        if sel_k(j) == 21 % c_e0 index
+            Jac_x0_ce0 = jacobian(x0,p.c_e0);
+            Jac_x0_ce0_call = Function('Jac_x0_ce0_call',{Total_park},{Jac_x0_ce0},{'Total_park'},{'result'});
+            S1_0_x0_ce0 = full(Jac_x0_ce0_call(Total_park0));
         end
-
-        % State I.C
-        x0 = full(x0_call(park0));
-        
-        % Calculate Jacobian matrix (\frac{\partial f}{\partial x}}), A11
-        f_x_jac = jacobian(x_dot,x);
-
-        % Calculate Jacobian matrix (\frac{\partial f}{\partial z}}), A12
-        f_z_jac = jacobian(x_dot,z);
-
-        % Calculate Jacobian matrix (\frac{\partial f}{\partial \theta}}), B1
-        f_theta_jac = jacobian(x_dot,Total_park);
-
-        % Calculate Jacobian matrix (\frac{\partial g}{\partial x}}), A21
-        g_x_jac = jacobian(g_,x);
-
-        % Calculate Jacobian matrix (\frac{\partial g}{\partial z}}), A22
-        g_z_jac = jacobian(g_,z);
-
-        % Calculate Jacobian matrix (\frac{\partial g}{\partial \theta}}), B2
-        g_theta_jac = jacobian(g_,Total_park);
-
-        % Calculate Jacobian matrix (\frac{\partial h}{\partial x}}), C
-        h_x_jac = jacobian(L,x);
-
-        % Calculate Jacobian matrix (\frac{\partial h}{\partial z}}), D
-        h_z_jac = jacobian(L,z);
-
-        % Calculate Jacobian matrix (\frac{\partial h}{\partial \theta}}), E
-        h_theta_jac = jacobian(L,Total_park);
-
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % 2. Build sensitivity equation
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-        S1_0 = zeros(size(x,1),Npark);
-        for j=1:length(sel_k)
-            pos = j;
-            if sel_k(j) == 21 % c_e0 index
-                S1_0(:,pos) = S1_0_x0_ce0;
-            end
-        end
-        S2_0 = zeros(size(z,1),Npark);
-        S3_0 = S3_0_V0_params;
-
-        % Symbolic Sensitivity
-
-        %%% S1_dot
-        S1_blk = SX.sym('S1_blk',size(x,1)*Npark,1);
-        S1 = reshape(S1_blk,size(x,1),Npark);
-
-        S2_blk = SX.sym('S2_blk',size(z,1)*Npark,1);
-        S2 = reshape(S2_blk,size(z,1),Npark);
-
-        tmp = repmat({f_x_jac},Npark,1);
-        f_x_blk = blkdiag(tmp{:});
-
-        tmp = repmat({f_z_jac},Npark,1);
-        f_z_blk = blkdiag(tmp{:});
-
-        f_theta_blk = reshape(f_theta_jac,size(x,1)*Npark,1);
-
-        S1_dot = f_x_blk*S1_blk + f_z_blk*S2_blk + f_theta_blk;
-
-        %%% S2_
-        tmp = repmat({g_x_jac},Npark,1);
-        g_x_blk = blkdiag(tmp{:});
-
-        tmp = repmat({g_z_jac},Npark,1);
-        g_z_blk = blkdiag(tmp{:});
-
-        g_theta_blk = reshape(g_theta_jac,size(z,1)*Npark,1);
-
-        S2_ = g_x_blk*S1_blk + g_z_blk*S2_blk + g_theta_blk;
-
-        %%% S3
-        S3 = h_x_jac * S1 + h_z_jac * S2 + h_theta_jac;
-        S3 = S3'; % change row-vector to column vector. 
-
-        % IC for S1_blk, S2_blk
-        S1_0_blk(:,1) = reshape(S1_0,size(x,1)*Npark,1);
-        S2_0_blk(:,1) = reshape(S2_0,size(z,1)*Npark,1);
-        
-        %%% Explicitly define sensitivity values needed for simulation
-        S1_sim_blk(:,1) = S1_0_blk(:,1);
-        S2_sim_blk(:,1) = S2_0_blk(:,1);
-        S3_sim(:,1) = S3_0';
-        
-    else % Still need this for simulating only voltage
-        % State I.C
-        x0 = full(x0_call(park0));
     end
+
+    % Calculate Jacobian matrix (\frac{\partial f}{\partial x}}), A11
+    f_x_jac = jacobian(x_dot,x);
+
+    % Calculate Jacobian matrix (\frac{\partial f}{\partial z}}), A12
+    f_z_jac = jacobian(x_dot,z);
+
+    % Calculate Jacobian matrix (\frac{\partial f}{\partial \theta}}), B1
+    f_theta_jac = jacobian(x_dot,Total_park);
+
+    % Calculate Jacobian matrix (\frac{\partial g}{\partial x}}), A21
+    g_x_jac = jacobian(g_,x);
+
+    % Calculate Jacobian matrix (\frac{\partial g}{\partial z}}), A22
+    g_z_jac = jacobian(g_,z);
+
+    % Calculate Jacobian matrix (\frac{\partial g}{\partial \theta}}), B2
+    g_theta_jac = jacobian(g_,Total_park);
+
+    % Calculate Jacobian matrix (\frac{\partial h}{\partial x}}), C
+    h_x_jac = jacobian(L,x);
+
+    % Calculate Jacobian matrix (\frac{\partial h}{\partial z}}), D
+    h_z_jac = jacobian(L,z);
+
+    % Calculate Jacobian matrix (\frac{\partial h}{\partial \theta}}), E
+    h_theta_jac = jacobian(L,Total_park);
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % 2. Build sensitivity equation
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    S1_0 = zeros(size(x,1),Npark);
+    for j=1:length(sel_k)
+        pos = j;
+        if sel_k(j) == 21 % c_e0 index
+            S1_0(:,pos) = S1_0_x0_ce0;
+        end
+    end
+    S2_0 = zeros(size(z,1),Npark);
+    S3_0 = S3_0_V0_params;
+
+    % Symbolic Sensitivity
+
+    %%% S1_dot
+    S1_blk = SX.sym('S1_blk',size(x,1)*Npark,1);
+    S1 = reshape(S1_blk,size(x,1),Npark);
+
+    S2_blk = SX.sym('S2_blk',size(z,1)*Npark,1);
+    S2 = reshape(S2_blk,size(z,1),Npark);
+
+    tmp = repmat({f_x_jac},Npark,1);
+    f_x_blk = blkdiag(tmp{:});
+
+    tmp = repmat({f_z_jac},Npark,1);
+    f_z_blk = blkdiag(tmp{:});
+
+    f_theta_blk = reshape(f_theta_jac,size(x,1)*Npark,1);
+
+    S1_dot = f_x_blk*S1_blk + f_z_blk*S2_blk + f_theta_blk;
+
+    %%% S2_
+    tmp = repmat({g_x_jac},Npark,1);
+    g_x_blk = blkdiag(tmp{:});
+
+    tmp = repmat({g_z_jac},Npark,1);
+    g_z_blk = blkdiag(tmp{:});
+
+    g_theta_blk = reshape(g_theta_jac,size(z,1)*Npark,1);
+
+    S2_ = g_x_blk*S1_blk + g_z_blk*S2_blk + g_theta_blk;
+
+    %%% S3
+    S3 = h_x_jac * S1 + h_z_jac * S2 + h_theta_jac;
+    S3 = S3'; % change row-vector to column vector. 
+
+    % IC for S1_blk, S2_blk
+    S1_0_blk(:,1) = reshape(S1_0,size(x,1)*Npark,1);
+    S2_0_blk(:,1) = reshape(S2_0,size(z,1)*Npark,1);
+
+    %%% Explicitly define sensitivity values needed for simulation
+    S1_sim_blk(:,1) = S1_0_blk(:,1);
+    S2_sim_blk(:,1) = S2_0_blk(:,1);
+    S3_sim(:,1) = S3_0';
     
     %% Integrator
 
@@ -652,9 +596,16 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 
     %% Simulation
 
+    % pre-allocate
+    v_sim = zeros(NT,1);
+    T1_sim = zeros(NT,1);
+    T2_sim = zeros(NT,1);
+    sens = zeros(NT,np);
+    
+    % Initialize
     x_sim(:,1) = x0;
     z_sim(:,1) = z0;
-    v_sim(:,1) = V0;
+    v_sim(1) = V0;
 
     % [SHP Change]
     % save x
@@ -664,8 +615,8 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     cen_sim(:,1) = ce_sim(1:(p.Nxn-1),1);
     ces_sim(:,1) = ce_sim((p.Nxn-1 +1):(p.Nxn-1 + p.Nxs-1),1);
     cep_sim(:,1) = ce_sim((p.Nxn-1 + p.Nxs-1 +1):(p.Nxn-1 + p.Nxs-1 + p.Nxp-1),1);
-    T1_sim(:,1) = f0(out_T_idx);
-    T2_sim(:,1) = f0(end);
+    T1_sim(1) = f0(out_T_idx);
+    T2_sim(1) = f0(end);
     
     % save z
     phi_s_n_sim(:,1) = g0(out_phisn_idx);
@@ -703,10 +654,9 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 %     disp('Running')
     
     % Simulate DFN & Sensitivity Equations
-    try
         for k=1:(NT-1)
             if (mod(k,500) == 0)
-                fprintf('Iter:%d, v_sim: %f\n',k,v_sim(:,k));
+                fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
             end
 
             Cur = I(k+1);
@@ -715,7 +665,7 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             Fk = F('x0',x_sim(:,k),'z0',z_sim(:,k),'p',[park0;Cur]);
             x_sim(:,k+1) = full(Fk.xf);
             z_sim(:,k+1) = full(Fk.zf);
-            v_sim(:,k+1) = full(Fk.qf)/p.delta_t;
+            v_sim(k+1) = full(Fk.qf)/p.delta_t;
 
             f0 = full(f_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
             g0 = full(g_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
@@ -730,8 +680,8 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
             ces_sim(:,k+1) = ce_sim((p.Nxn-1 +1):(p.Nxn-1 + p.Nxs-1),k+1);
             cep_sim(:,k+1) = ce_sim((p.Nxn-1 + p.Nxs-1 +1):(p.Nxn-1 + p.Nxs-1 + p.Nxp-1),k+1);
 
-            T1_sim(:,k+1) = f0(out_T_idx);
-            T2_sim(:,k+1) = f0(end);
+            T1_sim(k+1) = f0(out_T_idx);
+            T2_sim(k+1) = f0(end);
 
             % save z
             phi_s_n_sim(:,k+1) = g0(out_phisn_idx);
@@ -767,18 +717,6 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
 
             % Step SOC forward
             SOC(k+1) = (mean(c_avg_n(:,k+1)) - cn_low) / (cn_high - cn_low);
-
-            if v_sim(:,k+1) <= p.volt_min
-%                 error('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
-                fprintf('Exp %s: Min voltage is reached at %d iteration \n',exp_num,k);
-    %             break;
-            end
-
-            if v_sim(:,k+1) >= p.volt_max
-%                 error('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
-                fprintf('Exp %s: Max voltage is reached at %d iteration \n',exp_num,k);
-    %             break;
-            end
             
             if SensFlag == 1 % Calculate sensitivity flag == true
                 % Sensitivity eqns
@@ -787,11 +725,28 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
                 S2_sim_blk(:,k+1) = full(Sk.zf);
                 S3_sim(:,k+1) = full(Sk.qf)/p.delta_t;
             end
+            
+             % Check voltage constraints and exit if violated
+            if v_sim(k+1) <= p.volt_min
+                fprintf('Min voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
+                v_sim = concatenate_data(v_sim);
+                %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
+                sens(1:length(S3_sim),:) = S3_sim'; 
+                alg_states = [];
+                return
+            end
+
+            if v_sim(k+1) >= p.volt_max
+                fprintf('Max voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
+                v_sim = concatenate_data(v_sim);
+                %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
+                sens(1:length(S3_sim)) = S3_sim';
+                alg_states = [];
+                return 
+            end
         end
 
     %% Collect Outputs
-        v_sim = v_sim'; % Column matrix
-
     %     alg_states.csn_sim = csn_sim;
     %     alg_states.csp_sim = csp_sim;
     %     alg_states.ce_sim = ce_sim;
@@ -829,19 +784,11 @@ function [V,alg_states,varargout] = DFN_sim_casadi(p, exp_num, Current_exp, Time
     %     alg_states.ces_sim = ces_sim;
     %     alg_states.cep_sim = cep_sim;
 
-        %% Return
-        V = v_sim;
+    %% Return
 
-        if SensFlag == 1
-            S3_sim = S3_sim'; % Nt-by-Np matrix
-            S = S3_sim;
-            varargout{1} = S;
-        end
-    catch e %e is an MException struct
-    % An error will put you here.
-        save('casadi_debug','x_sim','z_sim','v_sim');
-        fprintf('CasADi error for Exp %s at timestep %d: \n',exp_num,k);
-        errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
+    if SensFlag == 1
+        sens = S3_sim'; % Nt-by-Np matrix
+        varargout{1} = sens;
     end
 end
 

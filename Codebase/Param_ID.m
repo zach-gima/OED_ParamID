@@ -105,7 +105,7 @@ while exit_logic == false
     Param_save = [Param_save,reshape(theta,[25,1])];
     
     %%
-    for idx = 1:num_inputs
+    parfor idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
             exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
             Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});

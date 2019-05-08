@@ -40,7 +40,7 @@ else %M2M case
 end
 
 %% SCM
-groupsize = 1;
+groupsize = 3;
 theta = theta_0;
 exit_logic = false;
 
@@ -70,14 +70,21 @@ Voltage_truth_save = v_dat;
 Sens_save = [];
 Param_norm_save = [];
 Linesrch_save = [];
-%save('DylanDebug/alpha10000','Linesrch_save','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
+%save('DylanDebug/alpha10000','Param_norm_save','Linesrch_save','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
     Iter = Iter + 1;
     % Reset alpha
     %Sample with replacement
     %[~,b] = sort(W);
-    rand_idx25 = randsample(25,groupsize,true, [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]) %,true,np/2 + b));
+    %%
+    W = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0];
+    for i = 1:groupsize
+    rand_idx25(i,1) = randsample(25,1,true, W); %,true,np/2 + b));
+    W(rand_idx25(i,1))=0;
+    end
+    rand_idx25 = sort(rand_idx25)
+    %%
     for i = 1 : length(rand_idx25)
     rand_idx22(i) = twenty2to25(rand_idx25(i),'522');
     end
@@ -91,7 +98,7 @@ while exit_logic == false
     % coordinate
     btrk = true;
     
-    p = update_p(p,theta);
+   
     
     V_CELL = cell(num_inputs,1);
     S_CELL = cell(num_inputs,1);
@@ -105,6 +112,7 @@ while exit_logic == false
     Param_save = [Param_save,reshape(theta,[25,1])];
     
     %%
+     p = update_p(p,theta);
     parfor idx = 1:num_inputs
         [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
             exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
@@ -117,6 +125,7 @@ while exit_logic == false
    %% Save
     Voltage_save = [Voltage_save,reshape(v_sim,[length(v_sim),1])];
     Cost_save = [Cost_save; costprev];
+    
     %for debugging
     figure(2)
     plot(Cost_save)
@@ -139,11 +148,13 @@ while exit_logic == false
     
     %% Line search
     linesrch = 0;
-    maxstp = 1;
+    maxstp = 3;
+    btr = 0;
+    maxbtr = 4;
     while btrk
         try
             while true
-                linesrch = linesrch + 1;
+                
                 %update parameter, just simulate to see if cost improves,
                 %if not reduce alpha,
                 %if so, break
@@ -163,22 +174,27 @@ while exit_logic == false
                 theta_norm(rand_idx22) = theta_norm(rand_idx22) + delta_theta;
                 theta_norm(rand_idx22) = min(max(0,theta_norm(rand_idx22)),1); % min max routine prevents parameter value from violating bounds
                 theta = norm_to_origin(theta_norm,bounds,selection_vector);
-                p = update_p(p,theta);
+                
                 %check if we should got to another parameter or update this one
                 %again
                 V_CELL = cell(num_inputs,1);
                 S_CELL = cell(num_inputs,1);
                 
+                
+                p = update_p(p,theta);
                 parfor idx = 1:num_inputs
                     [V_CELL{idx}] = DFN_sim_casadi(p,...
                         exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
                         Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
                 end
+                
+                
                 v_new = cell2mat(V_CELL);
                 costnew = norm(v_dat - v_new,2);
                 
                 %check if the cost got worse
                 if and(costnew > costprev, linesrch < maxstp)
+                    linesrch = linesrch + 1;
                     %reset theta
                     theta = theta_prev;
                     %reduce step size
@@ -199,12 +215,16 @@ while exit_logic == false
         catch e % logic for when casadi fails %TEST THIS
             % An error will put you here.
             errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
-            
+            btr = btr+1;
             % Propose a smaller parameter step
             alpha =min(alpha,1/min(abs((Jac')*(v_dat - v_sim))'));
             alpha = alpha/2; % NOTE: NEEDS TESTING
             theta = theta_prev;
+            if btr > maxbtr
+                btrk = false
+            end
         end 
+        
     end
     
     %save a debugging param

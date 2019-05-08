@@ -602,6 +602,7 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
     T1_sim = zeros(NT,1);
     T2_sim = zeros(NT,1);
     sens = zeros(NT,np);
+    S3_sim = zeros(np,NT);
     
     % Initialize
     x_sim(:,1) = x0;
@@ -655,98 +656,127 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
 %     disp('Running')
     
     % Simulate DFN & Sensitivity Equations
-    for k=1:(NT-1)
-        if (mod(k,500) == 0)
-            fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
+    try
+        for k=1:(NT-1)
+            if (mod(k,500) == 0)
+                fprintf('Iter:%d, v_sim: %f\n',k,v_sim(k));
+            end
+
+            Cur = I(k+1);
+
+            % DFN
+            Fk = F('x0',x_sim(:,k),'z0',z_sim(:,k),'p',[park0;Cur]);
+            x_sim(:,k+1) = full(Fk.xf);
+            z_sim(:,k+1) = full(Fk.zf);
+            v_sim(k+1) = full(Fk.qf)/p.delta_t;
+
+            f0 = full(f_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
+            g0 = full(g_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
+            a0 = full(alg_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
+            p0 = full(par_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
+
+            % save x
+            csn_sim(:,k+1) = f0(out_csn_idx);
+            csp_sim(:,k+1) = f0(out_csp_idx);
+            ce_sim(:,k+1) = f0(out_ce_idx);
+            cen_sim(:,k+1) = ce_sim(1:(p.Nxn-1),k+1);
+            ces_sim(:,k+1) = ce_sim((p.Nxn-1 +1):(p.Nxn-1 + p.Nxs-1),k+1);
+            cep_sim(:,k+1) = ce_sim((p.Nxn-1 + p.Nxs-1 +1):(p.Nxn-1 + p.Nxs-1 + p.Nxp-1),k+1);
+
+            T1_sim(k+1) = f0(out_T_idx);
+            T2_sim(k+1) = f0(end);
+
+            % save z
+            phi_s_n_sim(:,k+1) = g0(out_phisn_idx);
+            phi_s_p_sim(:,k+1) = g0(out_phisp_idx);
+            ien_sim(:,k+1) = g0(out_ien_idx);
+            iep_sim(:,k+1) = g0(out_iep_idx);
+            phie_sim(:,k+1) = g0(out_phie_idx);
+            jn_sim(:,k+1) = g0(out_jn_idx);
+            jp_sim(:,k+1) = g0(out_jp_idx);
+
+            % save alg.
+            cssn_sim(:,k+1) = a0(out_cssn_idx);
+            cssp_sim(:,k+1) = a0(out_cssp_idx);
+            cex_sim(:,k+1) = a0(out_cex_idx);
+            theta_avgn_sim(:,k+1) = a0(out_theta_avgn_idx);
+            theta_avgp_sim(:,k+1) = a0(out_theta_avgp_idx);
+            etan_sim(:,k+1) = a0(out_etan_idx);
+            etap_sim(:,k+1) = a0(out_etap_idx);
+            ce0n_sim(:,k+1) = a0(out_ce0n_idx);
+            ce0p_sim(:,k+1) = a0(out_ce0p_idx);
+            etasLn_sim(:,k+1) = a0(out_etasLn_idx);
+            volt_sim(:,k+1) = a0(out_Volt_idx);
+            nLis_sim(:,k+1) = a0(out_nLis_idx);
+            nLie_sim(:,k+1) = a0(out_nLie_idx);
+
+            % save param.
+            Den0_sim(:,k+1) = p0(out_Den_idx);
+            dDen0_sim(:,k+1) = p0(out_dDen_idx);
+            Des0_sim(:,k+1) = p0(out_Des_idx);
+            dDes0_sim(:,k+1) = p0(out_dDes_idx);
+            Dep0_sim(:,k+1) = p0(out_Dep_idx);
+            dDep0_sim(:,k+1) = p0(out_dDep_idx);
+
+            % Step SOC forward
+            SOC(k+1) = (mean(c_avg_n(:,k+1)) - cn_low) / (cn_high - cn_low);
+
+            if SensFlag == 1 % Calculate sensitivity flag == true
+                % Sensitivity eqns
+                Sk = SS('x0',S1_sim_blk(:,k),'z0',S2_sim_blk(:,k),'p',[park0;x_sim(:,k);z_sim(:,k);Cur]);
+                S1_sim_blk(:,k+1) = full(Sk.xf);
+                S2_sim_blk(:,k+1) = full(Sk.zf);
+                S3_sim(:,k+1) = full(Sk.qf)/p.delta_t;
+            end
+
+             % Check voltage constraints and exit if violated
+            if v_sim(k+1) <= p.volt_min
+                fprintf('Min voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
+                v_sim = concatenate_data(v_sim);
+                %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
+                sens(1:length(S3_sim),:) = S3_sim'; 
+                varargout{1} = sens;
+                alg_states = [];
+                return
+            end
+
+            if v_sim(k+1) >= p.volt_max
+                fprintf('Max voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
+                v_sim = concatenate_data(v_sim);
+                %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
+                sens(1:length(S3_sim),:) = S3_sim';
+                varargout{1} = sens;
+                alg_states = [];
+                return 
+            end
         end
+    catch e
+        errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
+        fprintf('CasADi error. Stopping simulation and concatenating data. \n');
+        v_sim = concatenate_data(v_sim);
+        %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
+        sens(1:length(S3_sim),:) = S3_sim';
+        varargout{1} = sens;
 
-        Cur = I(k+1);
-
-        % DFN
-        Fk = F('x0',x_sim(:,k),'z0',z_sim(:,k),'p',[park0;Cur]);
-        x_sim(:,k+1) = full(Fk.xf);
-        z_sim(:,k+1) = full(Fk.zf);
-        v_sim(k+1) = full(Fk.qf)/p.delta_t;
-
-        f0 = full(f_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
-        g0 = full(g_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
-        a0 = full(alg_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
-        p0 = full(par_out(park0,x_sim(:,k+1),z_sim(:,k+1),Cur));
-
-        % save x
-        csn_sim(:,k+1) = f0(out_csn_idx);
-        csp_sim(:,k+1) = f0(out_csp_idx);
-        ce_sim(:,k+1) = f0(out_ce_idx);
-        cen_sim(:,k+1) = ce_sim(1:(p.Nxn-1),k+1);
-        ces_sim(:,k+1) = ce_sim((p.Nxn-1 +1):(p.Nxn-1 + p.Nxs-1),k+1);
-        cep_sim(:,k+1) = ce_sim((p.Nxn-1 + p.Nxs-1 +1):(p.Nxn-1 + p.Nxs-1 + p.Nxp-1),k+1);
-
-        T1_sim(k+1) = f0(out_T_idx);
-        T2_sim(k+1) = f0(end);
-
-        % save z
-        phi_s_n_sim(:,k+1) = g0(out_phisn_idx);
-        phi_s_p_sim(:,k+1) = g0(out_phisp_idx);
-        ien_sim(:,k+1) = g0(out_ien_idx);
-        iep_sim(:,k+1) = g0(out_iep_idx);
-        phie_sim(:,k+1) = g0(out_phie_idx);
-        jn_sim(:,k+1) = g0(out_jn_idx);
-        jp_sim(:,k+1) = g0(out_jp_idx);
-
-        % save alg.
-        cssn_sim(:,k+1) = a0(out_cssn_idx);
-        cssp_sim(:,k+1) = a0(out_cssp_idx);
-        cex_sim(:,k+1) = a0(out_cex_idx);
-        theta_avgn_sim(:,k+1) = a0(out_theta_avgn_idx);
-        theta_avgp_sim(:,k+1) = a0(out_theta_avgp_idx);
-        etan_sim(:,k+1) = a0(out_etan_idx);
-        etap_sim(:,k+1) = a0(out_etap_idx);
-        ce0n_sim(:,k+1) = a0(out_ce0n_idx);
-        ce0p_sim(:,k+1) = a0(out_ce0p_idx);
-        etasLn_sim(:,k+1) = a0(out_etasLn_idx);
-        volt_sim(:,k+1) = a0(out_Volt_idx);
-        nLis_sim(:,k+1) = a0(out_nLis_idx);
-        nLie_sim(:,k+1) = a0(out_nLie_idx);
-
-        % save param.
-        Den0_sim(:,k+1) = p0(out_Den_idx);
-        dDen0_sim(:,k+1) = p0(out_dDen_idx);
-        Des0_sim(:,k+1) = p0(out_Des_idx);
-        dDes0_sim(:,k+1) = p0(out_dDes_idx);
-        Dep0_sim(:,k+1) = p0(out_Dep_idx);
-        dDep0_sim(:,k+1) = p0(out_dDep_idx);
-
-        % Step SOC forward
-        SOC(k+1) = (mean(c_avg_n(:,k+1)) - cn_low) / (cn_high - cn_low);
-
-        if SensFlag == 1 % Calculate sensitivity flag == true
-            % Sensitivity eqns
-            Sk = SS('x0',S1_sim_blk(:,k),'z0',S2_sim_blk(:,k),'p',[park0;x_sim(:,k);z_sim(:,k);Cur]);
-            S1_sim_blk(:,k+1) = full(Sk.xf);
-            S2_sim_blk(:,k+1) = full(Sk.zf);
-            S3_sim(:,k+1) = full(Sk.qf)/p.delta_t;
-        end
-
-         % Check voltage constraints and exit if violated
-        if v_sim(k+1) <= p.volt_min
-            fprintf('Min voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
-            v_sim = concatenate_data(v_sim);
-            %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
-            sens(1:length(S3_sim),:) = S3_sim'; 
-            varargout{1} = sens;
-            alg_states = [];
-            return
-        end
-
-        if v_sim(k+1) >= p.volt_max
-            fprintf('Max voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
-            v_sim = concatenate_data(v_sim);
-            %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
-            sens(1:length(S3_sim),:) = S3_sim';
-            varargout{1} = sens;
-            alg_states = [];
-            return 
-        end
+        alg_states.T1_sim = T1_sim;
+        alg_states.T2_sim = T2_sim;
+        alg_states.phi_s_n_sim = phi_s_n_sim;
+        alg_states.phi_s_p_sim = phi_s_p_sim;
+        alg_states.phie_sim = phie_sim;
+        alg_states.ien_sim = ien_sim;
+        alg_states.iep_sim = iep_sim;
+        alg_states.jn_sim = jn_sim;
+        alg_states.jp_sim = jp_sim;
+        alg_states.cssn_sim = cssn_sim;
+        alg_states.cssp_sim = cssp_sim;
+        alg_states.cex_sim = cex_sim;
+        alg_states.theta_avgn_sim = theta_avgn_sim;
+        alg_states.theta_avgp_sim = theta_avgp_sim;
+        alg_states.etan_sim = etan_sim;
+        alg_states.etap_sim = etap_sim;
+        
+        save('casadi_debug.mat','v_sim','alg_states','Current_exp', 'Time_exp')
+        return
     end
 
     %% Collect Outputs

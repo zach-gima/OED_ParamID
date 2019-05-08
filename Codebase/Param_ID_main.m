@@ -6,6 +6,13 @@ close all
 
 datetime_initial = datetime('now','TimeZone','America/Los_Angeles');
 
+%% instantiate global variables that will track iterations within fmincon
+global history;
+global searchdir;
+history.x = [];
+history.fval = [];
+searchdir = [];
+
 %% User Input 
 
 % Load Nominal Parameter Set, Bounds, & True params
@@ -38,10 +45,12 @@ mkdir(output_folder); %create new subfolder with current date in output_folder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
 % [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
-filename_input_vector{1} = strcat(input_folder,'V_sim_G1.mat');
-filename_output_vector{1} = strcat(output_folder,baseline{1},'G1_',init_cond,'.mat');
-selection_vector = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % 13 params
-% selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1];
+filename_input_vector{1} = strcat(input_folder,'V_sim_G2G1.mat');
+filename_output_vector{1} = strcat(output_folder,baseline{1},'G2G1_',init_cond,'.mat');
+% selection_vector = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % 13 params, G2
+% selection_vector = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; % 6 params, G1
+% selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; % 22 params
+% selection_vector = [1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0]; % debug
 
 %% Display Simulation Info
 
@@ -57,15 +66,6 @@ fprintf('Number of Groups: %i \n',num_groups);
 fprintf('Number of Parameters: %i \n',sum(selection_vector));
 
 %% Call ParamID function
-
-%initialize vectors for storing metrics and other data
-datetime_paramID = cell(num_groups,1);
-t_paramID = 0;
-ci95_full = zeros(25,1); %vector for storing confidence interval for params
-rmse_final = [];
-iter_history = [];
-theta_0_true = theta_0;% save the very 1st initial parameter guess for plotting purposes (param_table_plotter)
-
 try
     for jj = 1:num_groups
         % Load Group Specific Inputs
@@ -85,7 +85,7 @@ try
         ub = bounds.max(sel_k);
 
         opt = optimoptions('fmincon','Display','iter','Algorithm','sqp',...
-        'SpecifyObjectiveGradient',true,'Diagnostics','on');  %'CheckGradients',true,'FiniteDifferenceType','central',
+        'SpecifyObjectiveGradient',true,'Diagnostics','on','OutputFcn',@outfun);  %'CheckGradients',true,'FiniteDifferenceType','central',
 
         % create anonymous function to pass in other parameters needed for V_obj
         fh = @(x)V_obj(x,selection_vector, Inputs, p);
@@ -109,8 +109,38 @@ catch e %e is an MException struct
     
 %     % Save ParamID results even when erorr occurs
 %     save(filename_output,'park0','paramID_out','LM_Iter','ci95_full');
-    
+    save(strcat('debug_',filename_output),'searchdir','history');
     diary off %stop logging command window
     
     matlabmail('ztakeo@berkeley.edu','Error encountered',errorMessage,error_filename);
 end    
+
+%% The purpose of this function is to save the iteration values 
+%found and slightly modified from online documentation
+function stop = outfun(x,optimValues,state)
+    stop = false;
+    global history;
+    global searchdir;
+    switch state
+        case 'init'
+            hold on
+        case 'iter'
+            % Concatenate current point and objective function
+            % value with history. x must be a row vector.
+            history.fval = [history.fval; optimValues.fval];
+            history.x = [history.x; x'];
+            % Concatenate current search direction with 
+            % searchdir.
+            searchdir = [searchdir;... 
+                        optimValues.searchdirection'];
+            plot(x(1),x(2),'o');
+            % Label points with iteration number and add title.
+            % Add .15 to x(1) to separate label from plotted 'o'
+            text(x(1)+.15,x(2),... 
+                num2str(optimValues.iteration));
+            title('Sequence of Points Computed by fmincon');
+        case 'done'
+            hold off
+        otherwise
+    end
+end

@@ -121,6 +121,7 @@ while exit_logic == false
 
     v_sim = cell2mat(V_CELL);
     Sens = cell2mat(S_CELL);
+    
     costprev = norm(v_dat - v_sim,2);
    %% Save
     Voltage_save = [Voltage_save,reshape(v_sim,[length(v_sim),1])];
@@ -151,6 +152,7 @@ while exit_logic == false
     maxstp = 3;
     btr = 0;
     maxbtr = 4;
+    
     while btrk
         try
             while true
@@ -166,7 +168,7 @@ while exit_logic == false
                 
                 % Update / increase alpha?
                 delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
-                delta_theta_history(rand_idx22) = delta_theta;
+                delta_theta_history(rand_idx22) = delta_theta; %maybe wrong
                 
                 % Parameter Normalization --
                 Selected_params = theta(sel_k); 

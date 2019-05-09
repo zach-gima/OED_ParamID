@@ -83,11 +83,15 @@ while exit_logic == false
     rand_idx25(i,1) = randsample(25,1,true, W); %,true,np/2 + b));
     W(rand_idx25(i,1))=0;
     end
-    rand_idx25 = sort(rand_idx25)
+    
+    %rand_idx25 = sort(rand_idx25)
+    rand_idx25 = [2,3,9];
     %%
     for i = 1 : length(rand_idx25)
     rand_idx22(i) = twenty2to25(rand_idx25(i),'522');
     end
+     rand_idx22 = [2,3,7];
+    
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
     
@@ -168,7 +172,7 @@ while exit_logic == false
                 
                 % Update / increase alpha?
                 delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
-                delta_theta_history(rand_idx22) = delta_theta; %maybe wrong
+                delta_theta_history(rand_idx22) = delta_theta; %Definetly wrong because delta-theta is not how much it changes if it is at the bound
                 
                 % Parameter Normalization --
                 Selected_params = theta(sel_k); 

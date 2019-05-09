@@ -1,9 +1,9 @@
 %% OED-CVX Parameter Estimation Main File
 % Used to call ParamID function for OED-CVX param. estimation
 % By Zach Gima, 2018-3-18
-clc
-clearvars
-close all
+%clc
+%clearvars
+%close all
 
 datetime_initial = datetime('now','TimeZone','America/Los_Angeles');
 
@@ -207,8 +207,10 @@ try
 
         % Prev. had outputs [LM_Iter,paramID_out], which are now just
         % global variables. See note at beginning of script
-        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,theta_0,Inputs,filename_output,SCD_options); 
-
+        %[park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,theta_0,Inputs,filename_output,SCD_options); 
+        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,Param_save(:,9),Inputs,filename_output,SCD_options); 
+        
+        
         % Save time it took to identify each parameter group
         datetime_paramID{jj} = datetime('now','TimeZone','local')
         t_paramID = vertcat(t_paramID,toc+t_paramID(end)); %measure program execution time

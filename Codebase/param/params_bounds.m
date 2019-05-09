@@ -29,7 +29,7 @@ bounds.min = [2.25E-16;    %1.D_s_n
                  20e3;       %23.E.Dsp
                  37.48e3;       %24.E.kn
                  30e3        %25.E.kp                 
-                 ];  % assign nominal vlaues that selects sensitivity
+                 ];  % assign nominal values that selects sensitivity
 
              
 bounds.max = [1.05E-12;    %1.D_s_n

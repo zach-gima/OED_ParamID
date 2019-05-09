@@ -260,8 +260,8 @@ while exit_logic == false
     
     %     save(strcat(LM_filename_output,num2str(LM_Iter),'.mat'),'park0','paramID_out','LM_Iter');
     
-    cost = norm(v_dat - v_new,2);
-    fprintf('Cost: %1.6f \n',cost);
+    %cost = norm(v_dat - v_new,2);
+    %fprintf('Cost: %1.6f \n',cost);
     
 end
 

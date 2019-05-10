@@ -84,13 +84,13 @@ while exit_logic == false
     W(rand_idx25(i,1))=0;
     end
     
-    %rand_idx25 = sort(rand_idx25)
-    rand_idx25 = [2,3,9];
+    rand_idx25 = sort(rand_idx25)
+    %rand_idx25 = [2,3,9];
     %%
     for i = 1 : length(rand_idx25)
     rand_idx22(i) = twenty2to25(rand_idx25(i),'522');
     end
-     rand_idx22 = [2,3,7];
+    %rand_idx22 = [2,3,7];
     
     e_idx = zeros(size(selection_vector));
     e_idx(rand_idx25) = 1;
@@ -118,9 +118,15 @@ while exit_logic == false
     %%
      p = update_p(p,theta);
     parfor idx = 1:num_inputs
-        [V_CELL{idx}, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
+        [~, ~, S_CELL{idx}] = DFN_sim_casadi(p,...
             exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
             Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 1,Rc{idx});
+    end
+    
+    parfor idx = 1:num_inputs
+        [V_CELL{idx}] = DFN_sim_casadi(p,...
+            exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
+            Voltage_exp{idx}(1:end), T_amb{idx}, 0, theta, 0,Rc{idx});
     end
 
     v_sim = cell2mat(V_CELL);
@@ -191,7 +197,7 @@ while exit_logic == false
                 parfor idx = 1:num_inputs
                     [V_CELL{idx}] = DFN_sim_casadi(p,...
                         exp_num{idx},Current_exp{idx}(1:end), Time_exp{idx}(1:end), ...
-                        Voltage_exp{idx}(1:end), T_amb{idx}, e_idx, theta, 0,Rc{idx});
+                        Voltage_exp{idx}(1:end), T_amb{idx}, 0, theta, 0,Rc{idx});
                 end
                 
                 
@@ -223,7 +229,7 @@ while exit_logic == false
             errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
             btr = btr+1;
             % Propose a smaller parameter step
-            alpha =min(alpha,1/min(abs((Jac')*(v_dat - v_sim))'));
+            alpha =min(alpha,1/max(abs((Jac')*(v_dat - v_sim))'));
             alpha = alpha/2; % NOTE: NEEDS TESTING
             theta = theta_prev;
             if btr > maxbtr

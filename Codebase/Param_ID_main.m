@@ -207,8 +207,8 @@ try
 
         % Prev. had outputs [LM_Iter,paramID_out], which are now just
         % global variables. See note at beginning of script
-        %[park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,theta_0,Inputs,filename_output,SCD_options); 
-        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,Param_save(:,9),Inputs,filename_output,SCD_options); 
+        [park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,theta_0,Inputs,filename_output,SCD_options); 
+        %[park0, paramID_out, LM_Iter] = Param_ID(p,bounds,sel_k,selection_vector,Param_save(:,9),Inputs,filename_output,SCD_options); 
         
         
         % Save time it took to identify each parameter group

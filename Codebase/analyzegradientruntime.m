@@ -21,7 +21,7 @@ Rc = Inputs.Rc;
 
 time_S_save = [];
 e_idx = zeros(1,25);
-
+time_save=[];
 for i=sel_k'
 e_idx(i) = 1
 tic

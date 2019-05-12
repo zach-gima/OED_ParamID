@@ -40,7 +40,7 @@ else %M2M case
 end
 
 %% SCM
-groupsize = 3;
+groupsize = 2;
 theta = theta_0;
 exit_logic = false;
 
@@ -58,13 +58,14 @@ ec.chi_sq_mem(:,1) = ones(np,1)*100.*selection_vector([1:4,7:19,21:25]);  % Chi 
 ec.param_exit(1) = 100; % Convergence in the parameter estimates
 ec.chi_sq_RelTol(1) = 100; % Rel. Tol for Cost Function
 ec.chi_sq_AbsTol(1) = 100;
-
+epsilonpenalty = 10;
 
 Iter = 0;
 Voltage_save = [];
 WCT_save = [];
 Rand_Idx_save = [];
 Cost_save = [];
+Pen_Cost_Save = [];
 Param_save = [];
 Voltage_truth_save = v_dat;
 Sens_save = [];
@@ -73,6 +74,7 @@ Linesrch_save = [];
 %save('DylanDebug/alpha10000','Param_norm_save','Linesrch_save','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
+    epsilonpenalty = epsilonpenalty/2;
     Iter = Iter + 1;
     % Reset alpha
     %Sample with replacement
@@ -133,9 +135,11 @@ while exit_logic == false
     Sens = cell2mat(S_CELL);
     
     costprev = norm(v_dat - v_sim,2);
+    penalizedcost = norm(v_dat - v_sim,2)+epsilonpenalty*norm(mean(v_dat) - v_sim,2);
    %% Save
     Voltage_save = [Voltage_save,reshape(v_sim,[length(v_sim),1])];
     Cost_save = [Cost_save; costprev];
+    Pen_Cost_Save =  [Pen_Cost_Save,penalizedcost];
     
     %for debugging
     figure(2)
@@ -177,7 +181,7 @@ while exit_logic == false
                 
                 
                 % Update / increase alpha?
-                delta_theta = alpha*(Jac')*(v_dat - v_sim); % NOTE: THIS UPDATE IS NORMALIZED
+                delta_theta = alpha*(Jac')*(v_dat - v_sim + epsilonpenalty(mean(v_dat)-v_sim)); % NOTE: THIS UPDATE IS NORMALIZED
                 delta_theta_history(rand_idx22) = delta_theta; %Definetly wrong because delta-theta is not how much it changes if it is at the bound
                 
                 % Parameter Normalization --
@@ -202,16 +206,20 @@ while exit_logic == false
                 
                 
                 v_new = cell2mat(V_CELL);
-                costnew = norm(v_dat - v_new,2);
-                
+                %costnew = norm(v_dat - v_new,2);
+                costnew = norm(v_dat - v_new,2)+epsilonpenalty*norm(mean(v_dat) - v_new,2);
                 %check if the cost got worse
-                if and(costnew > costprev, linesrch < maxstp)
+                if and(costnew > penalizedcost, linesrch < maxstp)
+                    
                     linesrch = linesrch + 1;
                     %reset theta
                     theta = theta_prev;
                     %reduce step size
                     alpha = alpha/2;
-                elseif costnew > costprev
+                    if linesrch == 2
+                        alpha =min(alpha,1/max(abs((Jac')*(v_dat - v_sim))'));
+                    end
+                elseif costnew > penalizedcost
                     %It will reach this when the line search takes too many
                     %steps
                     theta = theta_prev;

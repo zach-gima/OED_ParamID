@@ -74,7 +74,7 @@ Linesrch_save = [];
 %save('DylanDebug/alpha10000','Param_norm_save','Linesrch_save','Sens_save','Voltage_save','WCT_save','Rand_Idx_save','Cost_save','Param_save','Voltage_truth_save')
 tic;
 while exit_logic == false
-    epsilonpenalty = epsilonpenalty/2;
+    epsilonpenalty = epsilonpenalty/1.3;
     Iter = Iter + 1;
     % Reset alpha
     %Sample with replacement
@@ -158,7 +158,7 @@ while exit_logic == false
     
     %W(rand_idx22) = sum(abs(Jac));
     
-    alpha =min(1,1/min(abs((Jac')*(v_dat - v_sim))'));
+    alpha =min(1/2,3/4/max(abs((Jac')*(v_dat - v_sim + epsilonpenalty*(mean(v_dat)-v_sim))),[],2));
     theta_prev = theta; % NOTE: UN-NORMALIZED this is the theta from the previous successful iteration
     
     %% Line search
@@ -181,7 +181,7 @@ while exit_logic == false
                 
                 
                 % Update / increase alpha?
-                delta_theta = alpha*(Jac')*(v_dat - v_sim + epsilonpenalty(mean(v_dat)-v_sim)); % NOTE: THIS UPDATE IS NORMALIZED
+                delta_theta = alpha*(Jac')*(v_dat - v_sim + epsilonpenalty*(mean(v_dat)-v_sim)); % NOTE: THIS UPDATE IS NORMALIZED
                 delta_theta_history(rand_idx22) = delta_theta; %Definetly wrong because delta-theta is not how much it changes if it is at the bound
                 
                 % Parameter Normalization --
@@ -216,9 +216,9 @@ while exit_logic == false
                     theta = theta_prev;
                     %reduce step size
                     alpha = alpha/2;
-                    if linesrch == 2
-                        alpha =min(alpha,1/max(abs((Jac')*(v_dat - v_sim))'));
-                    end
+                    %if linesrch == 2
+                        %alpha =min(alpha,1/max(abs((Jac')*(v_dat - v_sim))'));
+                    %end
                 elseif costnew > penalizedcost
                     %It will reach this when the line search takes too many
                     %steps
@@ -237,7 +237,7 @@ while exit_logic == false
             errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
             btr = btr+1;
             % Propose a smaller parameter step
-            alpha =min(alpha,1/max(abs((Jac')*(v_dat - v_sim))'));
+            %alpha =min(alpha,1/max(abs((Jac')*(v_dat - v_sim))'));
             alpha = alpha/2; % NOTE: NEEDS TESTING
             theta = theta_prev;
             if btr > maxbtr

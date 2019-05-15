@@ -98,7 +98,7 @@ try
         fprintf('Parameter ID complete. Finished in %i seconds. \n',t_wallclock);
 
         % Save data & send email
-        save(filename_output,'theta_ID','fmincon_output','t_wallclock');
+        save(filename_output,'theta_ID','fmincon_output','t_wallclock','history','searchdir');
 
         % matlabmail(recipient,subject,message,attachments)
         matlabmail('ztakeo@berkeley.edu','Parameter ID complete','',[]);

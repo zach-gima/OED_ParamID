@@ -7,7 +7,7 @@ fs = 25;
 
 %% Load Parameters
 
-run param/params_expID
+run param/params_SCD
 theta_0 = expID_param;
 
 %% Load experiments 
@@ -20,9 +20,9 @@ theta_0 = expID_param;
 % Num_unique_inputs = length(max_exp_num_unique);
 
 % input_path = 'InputLibrary/Experimental/Unformatted/';
-% input_path = 'InputLibrary/ValidationCycles/';
+input_path = 'InputLibrary/ValidationCycles/Unformatted_SCD/';
 % input_path = '/Users/ztakeo/Desktop/OptExp/matfiles/';
-input_path = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/ValidationCycles/Unformatted/';
+% input_path = '/Users/ztakeo/Documents/GitHub/OED_ParamID/Codebase/InputLibrary/ValidationCycles/Unformatted/';
 
 % Num_unique_inputs = 12;
 % max_exp_num_unique = [47; 57; 250; 270; 286; 287; 294; 298; 526; 632; 884; 898];
@@ -44,6 +44,7 @@ end
 % Rc_ID = zeros(Num_unique_inputs,2);
 
 selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; %All, Year 2
+
 SensFlag = 0; %Turn sensitivity calculation off or on
 SensSelec = selection_vector;
 sel_k = find(SensSelec);
@@ -51,9 +52,10 @@ Selected_params = theta_0(sel_k);
 V_LM_CELL_sim = cell(Num_unique_inputs,1);
 v_drop_norm = zeros(Num_unique_inputs,1);
 
-for ii = 1:Num_unique_inputs
+for ii = 17:Num_unique_inputs
     % Reset R_c to nominal value
     run param/params_NCA
+%     p.R_c = 2.5e-03;
     Rc_initial = p.R_c;
 
     % Load experimental data
@@ -65,13 +67,13 @@ for ii = 1:Num_unique_inputs
     V_LM_CELL = Voltage_exp;
     
     %%% Supplement any missing variables
-    if ~exist('Temp_exp','var')
-        Temp_exp = ones(size(Voltage_exp))*25;
-    elseif exist('Temp_exp','var')
-        Temp_exp = Temp_exp{1};
-    end
+%     if ~exist('Temp_exp','var')
+%         Temp_exp = ones(size(Voltage_exp))*25;
+%     elseif exist('Temp_exp','var')
+%         Temp_exp = Temp_exp{1};
+%     end
 %     T_amb_sim = ones(Num_unique_inputs,1)*25;
-    T_amb_sim = Temp_exp;
+%     T_amb_sim = Temp_exp;
     
     % Add in Time
     if ~exist('Time_exp','var')
@@ -79,9 +81,9 @@ for ii = 1:Num_unique_inputs
     end
     
     % Simulate voltage response with nominal Rc value
-    [V_LM_CELL_sim{ii},~] = DFN_sim_casadi(p, max_exp_num_unique{ii}, Current_exp(1:30), Time_exp(1:30), V_LM_CELL(1:30), T_amb_sim(1:30), SensSelec, Selected_params, SensFlag,Rc_initial); % SensFlag == 0
+    [V_LM_CELL_sim{ii},~] = DFN_sim_casadi(p, Current_exp(1:30), Time_exp(1:30), V_LM_CELL(1:30), T_amb_sim(1:30), SensSelec, Selected_params, SensFlag,Rc_initial); % SensFlag == 0
 
-    % Plot before adjustment
+%     % Plot before adjustment
 %     figure('Position', [100 100 900 700])
 %     hold on
 % 
@@ -103,10 +105,10 @@ for ii = 1:Num_unique_inputs
     p.R_c = Rc_ID{ii,2};
     
     % Resimulate 
-    [V_LM_CELL_sim{ii},~] = DFN_sim_casadi(p, max_exp_num_unique{ii}, Current_exp(1:30), Time_exp(1:30), V_LM_CELL(1:30), T_amb_sim(1:30), SensSelec, Selected_params, SensFlag,Rc_ID{ii,2}); % SensFlag == 0
+    [V_LM_CELL_sim{ii},~] = DFN_sim_casadi(p, Current_exp(1:30), Time_exp(1:30), V_LM_CELL(1:30), T_amb_sim(1:30), SensSelec, Selected_params, SensFlag,Rc_ID{ii,2}); % SensFlag == 0
     v_drop_norm(ii) = norm(V_LM_CELL_sim{ii} - V_LM_CELL(1:30)); % calculate RMSE of drop for sanity check
     
-    % Plot after adjustment
+%    Plot after adjustment
 %     figure('Position', [100 100 900 700])
 %     hold on
 %     
@@ -118,12 +120,12 @@ for ii = 1:Num_unique_inputs
 %     ylabel('Voltage (V)')
 %     set(gca,'Fontsize',fs);
 %     hold off
-    
+%     
 %     close all
     
     Rc = Rc_ID{ii,2};
     
-    % Save Rc value to the experiment .mat file
+%     Save Rc value to the experiment .mat file
     save(filename,'Current_exp','T_amb_sim','Time_exp','Voltage_exp','Rc')
     clear 'Current_exp' 'T_amb_sim' 'Time_exp' 'Voltage_exp' 'Rc' Temp_exp
 end

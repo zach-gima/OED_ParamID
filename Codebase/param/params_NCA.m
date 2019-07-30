@@ -41,14 +41,10 @@ p.epsilon_e_p = 0.3;   % Volume fraction in electrolyte for pos. electrode
 p.epsilon_f_n = 1 - p.epsilon_s_n - p.epsilon_e_n;  % Volume fraction of filler in neg. electrode
 p.epsilon_f_p = 1 - p.epsilon_s_p - p.epsilon_e_p;  % Volume fraction of filler in pos. electrode
 
-epsilon_f_n = p.epsilon_f_n;  % Volume fraction of filler in neg. electrode
-epsilon_f_p = p.epsilon_f_p;  % Volume fraction of filler in pos. electrode
-
-
 % Specific interfacial surface area
 p.a_s_n = 3*p.epsilon_s_n / p.R_s_n;  % Negative electrode [m^2/m^3]
 p.a_s_p = 3*p.epsilon_s_p / p.R_s_p;  % Positive electrode [m^2/m^3]
-
+    
 % % % % % % % % % % Mass densities
 % % % % % % % % % rho_sn = 1800;    % Solid phase in negative electrode [kg/m^3]
 % % % % % % % % % rho_sp = 5010;    % Solid phase in positive electrode [kg/m^3]

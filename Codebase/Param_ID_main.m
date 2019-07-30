@@ -23,7 +23,7 @@ run param/params_bounds % loads bounds struct (has fields bounds.min and bounds.
 
 % Baseline C: Collinearity + Sensitivity (2 Groups)
 baseline = {'OED_'};
-num_groups = 1; % Number of parameter groups
+num_groups = 2; % Number of parameter groups
 
 %%%%%%%%%%%%%%%   Parameter Initial Conditions (Uncomment to select)   %%%%%%%%%%%%%%%
 run param/params_nominal
@@ -36,7 +36,7 @@ input_folder = strcat('InputLibrary/Experimental/');
 
 % Output subfolder
 date_txt = strrep(datestr(datetime_initial), ':', '_');
-% output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/EEC227C/',date_txt,'/');
+output_folder = strcat('/Users/ztakeo/Documents/GitHub/OED_ParamID/ID_results/Bosch-redo/',date_txt,'/');
 % output_folder = strcat('C:/Users/Zach/Box Sync/HPC/HPC1/',date_txt,'/'); %HPC-1 Path
 % output_folder = strcat('C:/Users/zgima/Box Sync/HPC/HPC2/',date_txt,'/'); %HPC-2 Path
 % output_folder = strcat('/global/home/users/ztakeo/output/',date_txt,'/'); %Savio Path
@@ -44,9 +44,9 @@ date_txt = strrep(datestr(datetime_initial), ':', '_');
 mkdir(output_folder); %create new subfolder with current date in output_folder
 
 %%% init_ParamID: initialize background stuff (variables, file i/o etc) based on the ParamID baseline and I.C.'s 
-% [filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
-filename_input_vector{1} = strcat(input_folder,'V_sim_G2G1.mat');
-filename_output_vector{1} = strcat(output_folder,baseline{1},'G2G1_',init_cond,'.mat');
+[filename_input_vector,filename_output_vector,selection_vector,ci_select,ci_input_vector] = init_ParamID(baseline,init_cond,num_groups,input_folder,output_folder);
+% filename_input_vector{1} = strcat(input_folder,'V_sim_G2G1.mat');
+% filename_output_vector{1} = strcat(output_folder,baseline{1},'G2G1_',init_cond,'.mat');
 % selection_vector = [1;1;1;1;0;0;0;0;1;0;1;1;0;0;1;0;0;1;0;0;1;1;1;1;0]; % 13 params, G2
 % selection_vector = [1;1;1;1;0;0;0;0;1;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0;0]; % 6 params, G1
 % selection_vector = [1;1;1;1;0;0;1;1;1;1;1;1;1;1;1;1;1;1;1;0;1;1;1;1;1]; % 22 params

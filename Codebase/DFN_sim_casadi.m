@@ -17,7 +17,7 @@
 
 function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp, Voltage_exp, T_amb, SensSelec, SelecParam, SensFlag,Rc) % [ZTG change] removed Rc for no model-to-model comparison
 
-    addpath('/Users/ztakeo/Documents/MATLAB/casadi') % Mac Laptop
+%     addpath('/Users/ztakeo/Documents/MATLAB/casadi') % Mac Laptop
 %     addpath('C:/Users/Zach/Documents/MATLAB/casadi_windows') % HPC-1
 %     addpath('C:/Users/zgima/Documents/MATLAB/casadi_windows') % HPC-2
 %     addpath('/global/home/users/ztakeo/modules/casadi-matlab');    % For Savio
@@ -379,105 +379,107 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
     x0_init = full(x0_call(park0));
     x0 = full(x0_call(park0));
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % 1. Calculate Jacobian automatically
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if SensFlag == 1
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % 1. Calculate Jacobian automatically
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    Jac_V0_param = jacobian(L,Total_park);
-    V0_call = Function('V0_call',{park,x,u},{Jac_V0_param},{'park','x','u'},{'result'});
-    S3_0_V0_params = full(V0_call(park0,x0_init,0));
+        Jac_V0_param = jacobian(L,Total_park);
+        V0_call = Function('V0_call',{park,x,u},{Jac_V0_param},{'park','x','u'},{'result'});
+        S3_0_V0_params = full(V0_call(park0,x0_init,0));
 
-    for j=1:length(sel_k)
-        if sel_k(j) == 21 % c_e0 index
-            Jac_x0_ce0 = jacobian(x0,p.c_e0);
-            Jac_x0_ce0_call = Function('Jac_x0_ce0_call',{Total_park},{Jac_x0_ce0},{'Total_park'},{'result'});
-            S1_0_x0_ce0 = full(Jac_x0_ce0_call(Total_park0));
+        for j=1:length(sel_k)
+            if sel_k(j) == 21 % c_e0 index
+                Jac_x0_ce0 = jacobian(x0,p.c_e0);
+                Jac_x0_ce0_call = Function('Jac_x0_ce0_call',{Total_park},{Jac_x0_ce0},{'Total_park'},{'result'});
+                S1_0_x0_ce0 = full(Jac_x0_ce0_call(Total_park0));
+            end
         end
-    end
 
-    % Calculate Jacobian matrix (\frac{\partial f}{\partial x}}), A11
-    f_x_jac = jacobian(x_dot,x);
+        % Calculate Jacobian matrix (\frac{\partial f}{\partial x}}), A11
+        f_x_jac = jacobian(x_dot,x);
 
-    % Calculate Jacobian matrix (\frac{\partial f}{\partial z}}), A12
-    f_z_jac = jacobian(x_dot,z);
+        % Calculate Jacobian matrix (\frac{\partial f}{\partial z}}), A12
+        f_z_jac = jacobian(x_dot,z);
 
-    % Calculate Jacobian matrix (\frac{\partial f}{\partial \theta}}), B1
-    f_theta_jac = jacobian(x_dot,Total_park);
+        % Calculate Jacobian matrix (\frac{\partial f}{\partial \theta}}), B1
+        f_theta_jac = jacobian(x_dot,Total_park);
 
-    % Calculate Jacobian matrix (\frac{\partial g}{\partial x}}), A21
-    g_x_jac = jacobian(g_,x);
+        % Calculate Jacobian matrix (\frac{\partial g}{\partial x}}), A21
+        g_x_jac = jacobian(g_,x);
 
-    % Calculate Jacobian matrix (\frac{\partial g}{\partial z}}), A22
-    g_z_jac = jacobian(g_,z);
+        % Calculate Jacobian matrix (\frac{\partial g}{\partial z}}), A22
+        g_z_jac = jacobian(g_,z);
 
-    % Calculate Jacobian matrix (\frac{\partial g}{\partial \theta}}), B2
-    g_theta_jac = jacobian(g_,Total_park);
+        % Calculate Jacobian matrix (\frac{\partial g}{\partial \theta}}), B2
+        g_theta_jac = jacobian(g_,Total_park);
 
-    % Calculate Jacobian matrix (\frac{\partial h}{\partial x}}), C
-    h_x_jac = jacobian(L,x);
+        % Calculate Jacobian matrix (\frac{\partial h}{\partial x}}), C
+        h_x_jac = jacobian(L,x);
 
-    % Calculate Jacobian matrix (\frac{\partial h}{\partial z}}), D
-    h_z_jac = jacobian(L,z);
+        % Calculate Jacobian matrix (\frac{\partial h}{\partial z}}), D
+        h_z_jac = jacobian(L,z);
 
-    % Calculate Jacobian matrix (\frac{\partial h}{\partial \theta}}), E
-    h_theta_jac = jacobian(L,Total_park);
+        % Calculate Jacobian matrix (\frac{\partial h}{\partial \theta}}), E
+        h_theta_jac = jacobian(L,Total_park);
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % 2. Build sensitivity equation
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % 2. Build sensitivity equation
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    S1_0 = zeros(size(x,1),Npark);
-    for j=1:length(sel_k)
-        pos = j;
-        if sel_k(j) == 21 % c_e0 index
-            S1_0(:,pos) = S1_0_x0_ce0;
+        S1_0 = zeros(size(x,1),Npark);
+        for j=1:length(sel_k)
+            pos = j;
+            if sel_k(j) == 21 % c_e0 index
+                S1_0(:,pos) = S1_0_x0_ce0;
+            end
         end
+        S2_0 = zeros(size(z,1),Npark);
+        S3_0 = S3_0_V0_params;
+
+        % Symbolic Sensitivity
+
+        %%% S1_dot
+        S1_blk = SX.sym('S1_blk',size(x,1)*Npark,1);
+        S1 = reshape(S1_blk,size(x,1),Npark);
+
+        S2_blk = SX.sym('S2_blk',size(z,1)*Npark,1);
+        S2 = reshape(S2_blk,size(z,1),Npark);
+
+        tmp = repmat({f_x_jac},Npark,1);
+        f_x_blk = blkdiag(tmp{:});
+
+        tmp = repmat({f_z_jac},Npark,1);
+        f_z_blk = blkdiag(tmp{:});
+
+        f_theta_blk = reshape(f_theta_jac,size(x,1)*Npark,1);
+
+        S1_dot = f_x_blk*S1_blk + f_z_blk*S2_blk + f_theta_blk;
+
+        %%% S2_
+        tmp = repmat({g_x_jac},Npark,1);
+        g_x_blk = blkdiag(tmp{:});
+
+        tmp = repmat({g_z_jac},Npark,1);
+        g_z_blk = blkdiag(tmp{:});
+
+        g_theta_blk = reshape(g_theta_jac,size(z,1)*Npark,1);
+
+        S2_ = g_x_blk*S1_blk + g_z_blk*S2_blk + g_theta_blk;
+
+        %%% S3
+        S3 = h_x_jac * S1 + h_z_jac * S2 + h_theta_jac;
+        S3 = S3'; % change row-vector to column vector. 
+
+        % IC for S1_blk, S2_blk
+        S1_0_blk(:,1) = reshape(S1_0,size(x,1)*Npark,1);
+        S2_0_blk(:,1) = reshape(S2_0,size(z,1)*Npark,1);
+
+        %%% Explicitly define sensitivity values needed for simulation
+        S1_sim_blk(:,1) = S1_0_blk(:,1);
+        S2_sim_blk(:,1) = S2_0_blk(:,1);
+        S3_sim(:,1) = S3_0';
     end
-    S2_0 = zeros(size(z,1),Npark);
-    S3_0 = S3_0_V0_params;
-
-    % Symbolic Sensitivity
-
-    %%% S1_dot
-    S1_blk = SX.sym('S1_blk',size(x,1)*Npark,1);
-    S1 = reshape(S1_blk,size(x,1),Npark);
-
-    S2_blk = SX.sym('S2_blk',size(z,1)*Npark,1);
-    S2 = reshape(S2_blk,size(z,1),Npark);
-
-    tmp = repmat({f_x_jac},Npark,1);
-    f_x_blk = blkdiag(tmp{:});
-
-    tmp = repmat({f_z_jac},Npark,1);
-    f_z_blk = blkdiag(tmp{:});
-
-    f_theta_blk = reshape(f_theta_jac,size(x,1)*Npark,1);
-
-    S1_dot = f_x_blk*S1_blk + f_z_blk*S2_blk + f_theta_blk;
-
-    %%% S2_
-    tmp = repmat({g_x_jac},Npark,1);
-    g_x_blk = blkdiag(tmp{:});
-
-    tmp = repmat({g_z_jac},Npark,1);
-    g_z_blk = blkdiag(tmp{:});
-
-    g_theta_blk = reshape(g_theta_jac,size(z,1)*Npark,1);
-
-    S2_ = g_x_blk*S1_blk + g_z_blk*S2_blk + g_theta_blk;
-
-    %%% S3
-    S3 = h_x_jac * S1 + h_z_jac * S2 + h_theta_jac;
-    S3 = S3'; % change row-vector to column vector. 
-
-    % IC for S1_blk, S2_blk
-    S1_0_blk(:,1) = reshape(S1_0,size(x,1)*Npark,1);
-    S2_0_blk(:,1) = reshape(S2_0,size(z,1)*Npark,1);
-
-    %%% Explicitly define sensitivity values needed for simulation
-    S1_sim_blk(:,1) = S1_0_blk(:,1);
-    S2_sim_blk(:,1) = S2_0_blk(:,1);
-    S3_sim(:,1) = S3_0';
     
     %% Integrator
 
@@ -733,7 +735,6 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
             if v_sim(k+1) <= p.volt_min
                 fprintf('Min voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
                 v_sim = concatenate_data(v_sim);
-                %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
                 sens(1:length(S3_sim),:) = S3_sim'; 
                 varargout{1} = sens;
                 alg_states = [];
@@ -743,7 +744,6 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
             if v_sim(k+1) >= p.volt_max
                 fprintf('Max voltage is reached at %d iteration. Stopping simulation and concatenating data. \n',k);
                 v_sim = concatenate_data(v_sim);
-                %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
                 sens(1:length(S3_sim),:) = S3_sim';
                 varargout{1} = sens;
                 alg_states = [];
@@ -754,7 +754,6 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
         errorMessage = sprintf('%s',getReport( e, 'extended', 'hyperlinks', 'on' ))
         fprintf('CasADi error. Stopping simulation and concatenating data. \n');
         v_sim = concatenate_data(v_sim);
-        %%%%%%%%%%%%%    ZTG Note: should the rest of the gradient be zero or the last gradient value? 
         sens(1:length(S3_sim),:) = S3_sim';
         varargout{1} = sens;
 

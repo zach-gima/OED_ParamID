@@ -63,7 +63,7 @@ datetime_initial
 fprintf('Initial Conditions: %s \n',init_cond);
 fprintf('Baseline: %s \n',baseline{1});
 fprintf('Number of Groups: %i \n',num_groups);
-fprintf('Number of Parameters: %i \n',sum(selection_vector));
+fprintf('Number of Parameters: %i \n',sum(selection_vector(:,end)));
 
 %% Call ParamID function
 try
@@ -72,7 +72,7 @@ try
         filename_input = filename_input_vector{jj};
         filename_output = filename_output_vector{jj};
         Inputs = load(filename_input); %Current, Voltage, Time, T_amb     
-        sel_k = find(selection_vector);
+        sel_k = find(selection_vector(:,jj));
 
         % Setup vectors related to parameter sensitivity selection
         selected_params = theta_0(sel_k);  % Goes from 21x1 vector to 18x1 (in all params selected scenario)
@@ -88,7 +88,7 @@ try
         'SpecifyObjectiveGradient',true,'Diagnostics','on','OutputFcn',@outfun);  %'CheckGradients',true,'FiniteDifferenceType','central',
 
         % create anonymous function to pass in other parameters needed for V_obj
-        fh = @(x)V_obj(x,selection_vector, Inputs, p);
+        fh = @(x)V_obj(x,selection_vector(:,jj), Inputs, p);
 
         [theta_ID,FVAL,EXITFLAG,fmincon_output,LAMBDA,GRAD,HESSIAN]= ...
            fmincon(fh,selected_params,[],[],[],[],lb,ub,[],opt);
@@ -97,6 +97,9 @@ try
         datetime_final = datetime('now','TimeZone','local')
         fprintf('Parameter ID complete. Finished in %i seconds. \n',t_wallclock);
 
+        % update initial parameter guess
+        theta_0(sel_k) = theta_ID;
+        
         % Save data & send email
         save(filename_output,'theta_ID','fmincon_output','t_wallclock','history','searchdir');
 

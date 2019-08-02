@@ -157,8 +157,6 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
 
     p.delta_t = 1;
 
-    %%%%%%%%%%%%%%% Conference Test %%%%%%%%%%%%%%%%%%%%%%%%%
-    % load('InputLibrary/1Ccrg_dchrg.mat')
     V0 = Voltage_exp(1);
     t = 1:length(Time_exp);
     I = -Current_exp/p.Area;
@@ -798,9 +796,9 @@ function [v_sim,alg_states,varargout] = DFN_sim_casadi(p, Current_exp, Time_exp,
 %     alg_states.theta_avgp_sim = theta_avgp_sim;
     alg_states.etan_sim = etan_sim;
     alg_states.etap_sim = etap_sim;
-%     alg_states.ce0n_sim = ce0n_sim;
-%     alg_states.ce0p_sim = ce0p_sim;
-%     alg_states.etasLn_sim = etasLn_sim;
+    alg_states.ce0n_sim = ce0n_sim;
+    alg_states.ce0p_sim = ce0p_sim;
+    alg_states.etasLn_sim = etasLn_sim;
 %     alg_states.volt_sim = volt_sim;
 %     alg_states.nLis_sim = nLis_sim;
 %     alg_states.nLie_sim = nLie_sim;

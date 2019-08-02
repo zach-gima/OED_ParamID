@@ -96,8 +96,9 @@ p.R = 8.314472;       % Gas constant, [J/mol-K]
 p.alph = 0.5;         % Charge transfer coefficients
 
 p.R_f_n = 5e-4;       % Resistivity of SEI layer, [Ohms*m^2]
-p.R_f_p = 1e-3;       % Resistivity of SEI layer, [Ohms*m^2]
-p.R_c = 2.5e-03;%5.1874e-05/p.Area; % Contact Resistance/Current Collector Resistance, [Ohms-m^2]
+p.R_f_p = 1e-4; % ZTG Change from 1e-3;       % Resistivity of SEI layer, [Ohms*m^2]
+% p.R_c = 2.5e-03;%5.1874e-05/p.Area; % Contact Resistance/Current Collector Resistance, [Ohms-m^2]
+p.R_c = 0; % ZTG Change 2019-4-24
 
 % Nominal Reaction rates
 p.k_n0 = 7.5e-4;  % Reaction rate in neg. electrode, [(A/m^2)*(mol^3/mol)^(1+alpha)]

@@ -49,7 +49,7 @@ Nominal_param = [3.90e-14;    %1.D_s_n
                  7.5e-04;    %16.k_n0
                  2.3e-03;    %17.k_p0
                  5e-04;      %18.R_f_n
-                 1e-03;      %19.R_f_p
+                 1e-04;      %19.R_f_p
                  nan;        %20.n_Li_s (x), Equil. Struct.
                  1e3;         %21.ce0
                  36.63e3;       %22.E.Dsn
